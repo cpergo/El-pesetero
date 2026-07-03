@@ -9,3 +9,6 @@ Thumbs.db
 keystore/
 local.properties
 .claude/
+# Artefactos del proyecto Android (esta rama es solo web)
+app/
+build/

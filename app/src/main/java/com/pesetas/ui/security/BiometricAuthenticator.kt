@@ -37,7 +37,7 @@ object BiometricAuthenticator {
             },
         )
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Peseta bloqueada")
+            .setTitle("El pesetero bloqueado")
             .setSubtitle("Desbloquea para ver tus finanzas")
             .setAllowedAuthenticators(ALLOWED)
             .build()

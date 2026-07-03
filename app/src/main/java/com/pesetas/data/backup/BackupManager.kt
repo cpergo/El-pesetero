@@ -67,7 +67,7 @@ class BackupManager @Inject constructor(
         } ?: error("No se pudo abrir el archivo")
         if (!isSqliteDatabase(temp)) {
             temp.delete()
-            error("El archivo no es una copia válida de Peseta")
+            error("El archivo no es una copia válida de El pesetero")
         }
         checkpoint()
         database.close()

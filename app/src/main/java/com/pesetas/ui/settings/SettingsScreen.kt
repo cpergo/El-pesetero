@@ -156,14 +156,14 @@ fun SettingsScreen(
                     icon = Icons.Filled.TableChart,
                     title = "Exportar a CSV",
                     subtitle = "Guarda tus movimientos en una hoja de cálculo",
-                    onClick = { csvLauncher.launch("pesetas_movimientos.csv") },
+                    onClick = { csvLauncher.launch("el-pesetero-movimientos.csv") },
                 )
                 HorizontalDivider()
                 SettingsItem(
                     icon = Icons.Filled.FileDownload,
                     title = "Exportar copia completa",
                     subtitle = "Guarda toda la base de datos en un archivo",
-                    onClick = { exportDbLauncher.launch("pesetas_backup.db") },
+                    onClick = { exportDbLauncher.launch("el-pesetero-backup.db") },
                 )
                 HorizontalDivider()
                 SettingsItem(
@@ -175,7 +175,7 @@ fun SettingsScreen(
             }
 
             SettingsSection(title = "Información") {
-                SettingsItem(icon = Icons.Filled.Info, title = "Acerca de Peseta", onClick = onAbout)
+                SettingsItem(icon = Icons.Filled.Info, title = "Acerca de El pesetero", onClick = onAbout)
             }
         }
     }

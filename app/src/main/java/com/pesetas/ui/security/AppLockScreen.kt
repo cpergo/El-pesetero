@@ -51,7 +51,7 @@ fun AppLockScreen(onUnlocked: () -> Unit) {
             modifier = Modifier.size(72.dp),
         )
         Text(
-            text = "Peseta está bloqueada",
+            text = "El pesetero está bloqueado",
             style = MaterialTheme.typography.titleLarge,
             color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center,

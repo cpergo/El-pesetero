@@ -1,0 +1,11 @@
+.DS_Store
+Thumbs.db
+
+# Esta rama contiene únicamente la web. Restos locales del proyecto Android:
+.gradle/
+.idea/
+.kotlin/
+.claude/
+keystore/
+local.properties
+.claude/

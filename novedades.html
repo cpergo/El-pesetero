@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+    <meta name="referrer" content="no-referrer">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#C89B3C">
+    <meta name="description" content="Novedades y versiones de Peseta, la app de control de gastos local y de código abierto.">
+    <title>Novedades · Peseta</title>
+    <link rel="icon" type="image/png" href="assets/icons/favicon.png">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/main.js"></script>
+</head>
+<body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="site-header">
+        <div class="container header-inner">
+            <a class="brand" href="index.html" aria-label="Peseta, inicio">
+                <img class="brand-logo brand-logo-light" src="assets/logo/peseta-header.svg" alt="Peseta" height="46">
+                <img class="brand-logo brand-logo-dark" src="assets/logo/peseta-header-dark.svg" alt="Peseta" height="46">
+            </a>
+            <nav class="main-nav" aria-label="Secciones">
+                <a href="novedades.html" aria-current="page">Novedades</a>
+                <a href="sobre-mi.html">Sobre mí</a>
+                <a href="https://github.com/cpergo/Pesetas/raw/main/releases/peseta-1.0.0.apk" rel="noopener noreferrer">Descargar</a>
+            </nav>
+            <button id="theme-toggle" class="icon-button" type="button" aria-label="Cambiar tema claro u oscuro">
+                <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><g><line x1="12" y1="2" x2="12" y2="4.5"/><line x1="12" y1="19.5" x2="12" y2="22"/><line x1="2" y1="12" x2="4.5" y2="12"/><line x1="19.5" y1="12" x2="22" y2="12"/><line x1="4.9" y1="4.9" x2="6.7" y2="6.7"/><line x1="17.3" y1="17.3" x2="19.1" y2="19.1"/><line x1="4.9" y1="19.1" x2="6.7" y2="17.3"/><line x1="17.3" y1="6.7" x2="19.1" y2="4.9"/></g></svg>
+                <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5z"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <main id="contenido">
+        <div class="container">
+            <div class="page-hero reveal">
+                <p class="eyebrow">Novedades</p>
+                <h1>Al día con cada versión</h1>
+                <p class="lead">Aquí iremos anotando lo nuevo de cada versión de Peseta.</p>
+            </div>
+
+            <div class="page-section updates-inner">
+                <ol class="changelog">
+                    <li class="release reveal">
+                        <div class="release-meta">
+                            <span class="release-tag">v1.0.0</span>
+                            <span class="release-date">Julio de 2026</span>
+                        </div>
+                        <div class="release-body">
+                            <h3>Primera versión pública</h3>
+                            <p>El primer lanzamiento de Peseta, con todo lo esencial ya dentro:</p>
+                            <ul class="release-list">
+                                <li>Ingresos, gastos y transferencias con categorías y cuentas ilimitadas.</li>
+                                <li>Pantalla principal con gráfico de gastos por categoría.</li>
+                                <li>Estadísticas mensuales y evolución por categoría.</li>
+                                <li>Copias de seguridad en CSV y de la base de datos completa.</li>
+                                <li>Tema claro/oscuro y bloqueo con huella o PIN.</li>
+                            </ul>
+                        </div>
+                    </li>
+                </ol>
+                <p class="updates-foot reveal">Las próximas versiones se publicarán aquí y en los
+                    <a href="https://github.com/cpergo/Pesetas/releases" rel="noopener noreferrer">Releases de GitHub</a>.</p>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

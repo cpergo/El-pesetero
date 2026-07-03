@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+    <meta name="referrer" content="no-referrer">
+    <meta name="color-scheme" content="light dark">
+    <meta name="theme-color" content="#C89B3C">
+    <meta name="description" content="Peseta es una app Android de control de gastos: gratuita, de código abierto y 100% local. Sin cuentas, sin servidores, sin anuncios y sin límites.">
+    <title>Peseta · Control de gastos local y de código abierto</title>
+    <link rel="icon" type="image/png" href="assets/icons/favicon.png">
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/main.js"></script>
+</head>
+<body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="site-header">
+        <div class="container header-inner">
+            <a class="brand" href="#inicio" aria-label="Peseta, inicio">
+                <img class="brand-logo brand-logo-light" src="assets/logo/peseta-header.svg" alt="Peseta" height="30">
+                <img class="brand-logo brand-logo-dark" src="assets/logo/peseta-header-dark.svg" alt="Peseta" height="30">
+            </a>
+            <nav class="main-nav" aria-label="Secciones">
+                <a href="novedades.html">Novedades</a>
+                <a href="sobre-mi.html">Sobre mí</a>
+                <a href="https://github.com/cpergo/Pesetas/raw/main/releases/peseta-1.0.0.apk" rel="noopener noreferrer">Descargar</a>
+            </nav>
+            <button id="theme-toggle" class="icon-button" type="button" aria-label="Cambiar tema claro u oscuro">
+                <svg class="icon icon-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><g><line x1="12" y1="2" x2="12" y2="4.5"/><line x1="12" y1="19.5" x2="12" y2="22"/><line x1="2" y1="12" x2="4.5" y2="12"/><line x1="19.5" y1="12" x2="22" y2="12"/><line x1="4.9" y1="4.9" x2="6.7" y2="6.7"/><line x1="17.3" y1="17.3" x2="19.1" y2="19.1"/><line x1="4.9" y1="19.1" x2="6.7" y2="17.3"/><line x1="17.3" y1="6.7" x2="19.1" y2="4.9"/></g></svg>
+                <svg class="icon icon-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a7 7 0 1 0 10.5 10.5z"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <main id="contenido">
+        <section class="hero" id="inicio">
+            <div class="container hero-grid">
+                <div class="hero-text reveal">
+                    <p class="eyebrow">Control de gastos · Android</p>
+                    <h1>Tus finanzas, <span class="accent">solo en tu bolsillo</span>.</h1>
+                    <p class="lead">Peseta es una app para llevar tus gastos e ingresos que funciona
+                        <strong>100&nbsp;% en tu teléfono</strong>. Sin cuentas, sin servidores y sin anuncios.
+                        Gratuita y de código abierto.</p>
+                    <div class="hero-cta">
+                        <a class="btn btn-primary" href="https://github.com/cpergo/Pesetas/raw/main/releases/peseta-1.0.0.apk" rel="noopener noreferrer">
+                            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg>
+                            Descargar
+                        </a>
+                        <a class="btn btn-ghost" href="https://github.com/cpergo/Pesetas" rel="noopener noreferrer">Ver en GitHub</a>
+                    </div>
+                    <p class="hero-note">Requiere Android 8.0 o superior</p>
+                </div>
+                <div class="hero-visual reveal">
+                    <div class="device device-hero">
+                        <div class="device-notch" aria-hidden="true"></div>
+                        <picture>
+                            <source srcset="assets/screenshots/home.webp" type="image/webp">
+                            <img src="assets/screenshots/home.png" width="540" height="1200" alt="Pantalla principal de Peseta con el gráfico de gastos por categoría del mes.">
+                        </picture>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section features" id="funciones" aria-labelledby="features-title">
+            <div class="container">
+                <div class="section-head reveal">
+                    <p class="eyebrow">Funciones</p>
+                    <h2 id="features-title">Todo lo que necesitas, sin límites</h2>
+                    <p class="section-sub">Categorías, cuentas e iconos ilimitados y gratis. Y como es
+                        <strong>código abierto</strong>, cualquiera puede revisar cómo funciona por dentro.</p>
+                </div>
+
+                <div class="showcase">
+                    <div class="showcase-row reveal">
+                        <div class="showcase-media">
+                            <div class="device">
+                                <div class="device-notch" aria-hidden="true"></div>
+                                <picture><source srcset="assets/screenshots/home.webp" type="image/webp"><img src="assets/screenshots/home.png" width="540" height="1200" alt="Pantalla principal con el donut de gastos por categoría." loading="lazy"></picture>
+                            </div>
+                        </div>
+                        <div class="showcase-text">
+                            <span class="showcase-eyebrow">Pantalla principal</span>
+                            <h3>Tu mes de un vistazo</h3>
+                            <p>Balance, ingresos y gastos del mes, y un gráfico circular de gastos por categoría.
+                                Mantén el dedo sobre una porción y verás cuánto llevas gastado en ella.</p>
+                        </div>
+                    </div>
+
+                    <div class="showcase-row reveal">
+                        <div class="showcase-media">
+                            <div class="device">
+                                <div class="device-notch" aria-hidden="true"></div>
+                                <picture><source srcset="assets/screenshots/movimientos.webp" type="image/webp"><img src="assets/screenshots/movimientos.png" width="540" height="1200" alt="Listado de movimientos agrupados por día." loading="lazy"></picture>
+                            </div>
+                        </div>
+                        <div class="showcase-text">
+                            <span class="showcase-eyebrow">Movimientos</span>
+                            <h3>Cada euro, en su sitio</h3>
+                            <p>Apunta ingresos y gastos con importe, fecha, categoría, cuenta y una nota.
+                                Edítalos o elimínalos cuando quieras y filtra por mes, cuenta o categoría.</p>
+                        </div>
+                    </div>
+
+                    <div class="showcase-row reveal">
+                        <div class="showcase-media">
+                            <div class="device">
+                                <div class="device-notch" aria-hidden="true"></div>
+                                <picture><source srcset="assets/screenshots/categorias.webp" type="image/webp"><img src="assets/screenshots/categorias.png" width="540" height="1200" alt="Gestión de categorías con sus iconos y colores." loading="lazy"></picture>
+                            </div>
+                        </div>
+                        <div class="showcase-text">
+                            <span class="showcase-eyebrow">Categorías</span>
+                            <h3>Ilimitadas, y gratis</h3>
+                            <p>Crea todas las categorías que necesites, cada una con su icono y color, y ordénalas a tu gusto.
+                                Aquí no hay muros de pago: justo lo que otras apps te cobran.</p>
+                        </div>
+                    </div>
+
+                    <div class="showcase-row reveal">
+                        <div class="showcase-media">
+                            <div class="device">
+                                <div class="device-notch" aria-hidden="true"></div>
+                                <picture><source srcset="assets/screenshots/cuentas.webp" type="image/webp"><img src="assets/screenshots/cuentas.png" width="540" height="1200" alt="Pantalla de cuentas con el saldo de cada una y el total." loading="lazy"></picture>
+                            </div>
+                        </div>
+                        <div class="showcase-text">
+                            <span class="showcase-eyebrow">Cuentas</span>
+                            <h3>Efectivo, banco, tarjeta…</h3>
+                            <p>Gestiona varias cuentas con su saldo individual y el saldo total combinado,
+                                y mueve dinero entre ellas con transferencias.</p>
+                        </div>
+                    </div>
+
+                    <div class="showcase-row reveal">
+                        <div class="showcase-media">
+                            <div class="device">
+                                <div class="device-notch" aria-hidden="true"></div>
+                                <picture><source srcset="assets/screenshots/estadisticas.webp" type="image/webp"><img src="assets/screenshots/estadisticas.png" width="540" height="1200" alt="Estadísticas con la comparativa de ingresos y gastos por mes." loading="lazy"></picture>
+                            </div>
+                        </div>
+                        <div class="showcase-text">
+                            <span class="showcase-eyebrow">Estadísticas</span>
+                            <h3>Entiende en qué se te va</h3>
+                            <p>Compara ingresos y gastos mes a mes, sigue la evolución de una categoría
+                                concreta y filtra por el rango de fechas que quieras.</p>
+                        </div>
+                    </div>
+
+                    <div class="showcase-row reveal">
+                        <div class="showcase-media">
+                            <div class="device">
+                                <div class="device-notch" aria-hidden="true"></div>
+                                <picture><source srcset="assets/screenshots/ajustes.webp" type="image/webp"><img src="assets/screenshots/ajustes.png" width="540" height="1200" alt="Ajustes con copias de seguridad y bloqueo de la app." loading="lazy"></picture>
+                            </div>
+                        </div>
+                        <div class="showcase-text">
+                            <span class="showcase-eyebrow">Copias y privacidad</span>
+                            <h3>Tus datos, siempre tuyos</h3>
+                            <p>Exporta a CSV o guarda una copia completa para restaurarla al cambiar de móvil.
+                                Protege la app con la huella o el PIN del dispositivo. Y al no pedir permiso de
+                                Internet, es imposible que tus datos salgan de tu teléfono.</p>
+                        </div>
+                    </div>
+
+                    <div class="showcase-row reveal">
+                        <div class="showcase-media">
+                            <div class="device">
+                                <div class="device-notch" aria-hidden="true"></div>
+                                <picture><source srcset="assets/screenshots/home-dark.webp" type="image/webp"><img src="assets/screenshots/home-dark.png" width="540" height="1200" alt="La pantalla principal de Peseta en modo oscuro." loading="lazy"></picture>
+                            </div>
+                        </div>
+                        <div class="showcase-text">
+                            <span class="showcase-eyebrow">Apariencia</span>
+                            <h3>Claro, oscuro o automático</h3>
+                            <p>Se adapta al tema de tu sistema, con una paleta cuidada inspirada en la
+                                antigua moneda de 500 pesetas.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="opensource reveal">
+                    <h3>Código abierto de verdad</h3>
+                    <p>Todo el código de Peseta está publicado en GitHub bajo licencia MIT. Cualquiera puede
+                        revisarlo, aprender de él o proponer mejoras. Las contribuciones no solo se permiten:
+                        <strong>son bienvenidas</strong>.</p>
+                    <a class="btn btn-ghost" href="https://github.com/cpergo/Pesetas" rel="noopener noreferrer">Ver el código en GitHub</a>
+                </div>
+            </div>
+        </section>
+
+        <section class="section install" id="instalar" aria-labelledby="install-title">
+            <div class="container install-inner">
+                <div class="section-head reveal">
+                    <p class="eyebrow">Instalación</p>
+                    <h2 id="install-title">Instálala en un minuto</h2>
+                    <p class="section-sub">Como no está en Google Play, se instala directamente desde el APK.</p>
+                </div>
+                <ol class="steps">
+                    <li class="step reveal">
+                        <span class="step-num">1</span>
+                        <div><h3>Descarga el APK</h3><p>Pulsa «Descargar» y guarda el archivo en tu teléfono.</p></div>
+                    </li>
+                    <li class="step reveal">
+                        <span class="step-num">2</span>
+                        <div><h3>Permite orígenes desconocidos</h3><p>Al abrir el archivo, Android te pedirá permitir la instalación desde tu explorador de archivos. Actívalo.</p></div>
+                    </li>
+                    <li class="step reveal">
+                        <span class="step-num">3</span>
+                        <div><h3>Pulsa Instalar</h3><p>Listo. No necesitas cuenta ni conexión: la app funciona sin internet desde el primer momento.</p></div>
+                    </li>
+                </ol>
+                <div class="install-cta reveal">
+                    <a class="btn btn-primary" href="https://github.com/cpergo/Pesetas/raw/main/releases/peseta-1.0.0.apk" rel="noopener noreferrer">
+                        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg>
+                        Descargar
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

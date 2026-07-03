@@ -1,0 +1,3 @@
+-keep,allowobfuscation,allowshrinking class com.pesetas.ui.statistics.StatisticsViewModel
+-keep,allowobfuscation,allowshrinking class com.pesetas.ui.statistics.StatisticsViewModel
+-keep,allowobfuscation,allowshrinking class com.pesetas.ui.settings.SettingsViewModel

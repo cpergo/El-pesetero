@@ -1,0 +1,8 @@
+-keep,allowobfuscation,allowshrinking class com.pesetas.ui.statistics.StatisticsViewModel
+-keep,allowobfuscation,allowshrinking class com.pesetas.ui.statistics.StatisticsViewModel
+-keep,allowobfuscation,allowshrinking class com.pesetas.ui.settings.SettingsViewModel
+-keep,allowobfuscation,allowshrinking class com.pesetas.ui.settings.SettingsViewModel
+-keep,allowobfuscation,allowshrinking class com.pesetas.ui.home.HomeViewModel
+-keep,allowobfuscation,allowshrinking class com.pesetas.ui.home.HomeViewModel
+-keep,allowobfuscation,allowshrinking class com.pesetas.ui.transfer.TransferViewModel
+-keep,allowobfuscation,allowshrinking class com.pesetas.ui.transfer.TransferViewModel

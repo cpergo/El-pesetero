@@ -1,0 +1,45 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.pesetas.app-mergeDebugResources-67:/values-night-v8/values-night-v8.xml",
+            "map": [
+                {
+                    "source": "/Users/cperez/.gradle/caches/8.10.2/transforms/fffbe436a8ea939d563f4b14e054a71f/transformed/appcompat-1.2.0/res/values-night-v8/values-night-v8.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,125,209,293,389,491,593,687",
+                        "endColumns": "69,83,83,95,101,101,93,88",
+                        "endOffsets": "120,204,288,384,486,588,682,771"
+                    },
+                    "to": {
+                        "startLines": "2,3,4,5,6,7,8,14",
+                        "startColumns": "4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,125,209,293,389,491,593,998",
+                        "endColumns": "69,83,83,95,101,101,93,88",
+                        "endOffsets": "120,204,288,384,486,588,682,1082"
+                    }
+                },
+                {
+                    "source": "/Users/cperez/Repositorios/Pesetas/app/src/main/res/values-night/themes.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "6",
+                        "endColumns": "12",
+                        "endOffsets": "361"
+                    },
+                    "to": {
+                        "startLines": "9",
+                        "startColumns": "4",
+                        "startOffsets": "687",
+                        "endLines": "13",
+                        "endColumns": "12",
+                        "endOffsets": "993"
+                    }
+                }
+            ]
+        }
+    ]
+}

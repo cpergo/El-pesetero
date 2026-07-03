@@ -1,0 +1,160 @@
+1<?xml version="1.0" encoding="utf-8"?>
+2<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+3    package="com.pesetas"
+4    android:versionCode="1"
+5    android:versionName="1.0.0" >
+6
+7    <uses-sdk
+8        android:minSdkVersion="26"
+9        android:targetSdkVersion="35" />
+10
+11    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+11-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:4:5-72
+11-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:4:22-69
+12
+13    <!-- suppress DeprecatedClassUsageInspection -->
+14    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
+14-->[androidx.biometric:biometric:1.1.0] /Users/cperez/.gradle/caches/8.10.2/transforms/8ec2216636fe4ae73964d4d9cfe24038/transformed/biometric-1.1.0/AndroidManifest.xml:27:5-74
+14-->[androidx.biometric:biometric:1.1.0] /Users/cperez/.gradle/caches/8.10.2/transforms/8ec2216636fe4ae73964d4d9cfe24038/transformed/biometric-1.1.0/AndroidManifest.xml:27:22-71
+15
+16    <permission
+16-->[androidx.core:core:1.15.0] /Users/cperez/.gradle/caches/8.10.2/transforms/e91ff20dd1b568e3a2ad9c084d1c0074/transformed/core-1.15.0/AndroidManifest.xml:22:5-24:47
+17        android:name="com.pesetas.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+17-->[androidx.core:core:1.15.0] /Users/cperez/.gradle/caches/8.10.2/transforms/e91ff20dd1b568e3a2ad9c084d1c0074/transformed/core-1.15.0/AndroidManifest.xml:23:9-81
+18        android:protectionLevel="signature" />
+18-->[androidx.core:core:1.15.0] /Users/cperez/.gradle/caches/8.10.2/transforms/e91ff20dd1b568e3a2ad9c084d1c0074/transformed/core-1.15.0/AndroidManifest.xml:24:9-44
+19
+20    <uses-permission android:name="com.pesetas.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION" />
+20-->[androidx.core:core:1.15.0] /Users/cperez/.gradle/caches/8.10.2/transforms/e91ff20dd1b568e3a2ad9c084d1c0074/transformed/core-1.15.0/AndroidManifest.xml:26:5-97
+20-->[androidx.core:core:1.15.0] /Users/cperez/.gradle/caches/8.10.2/transforms/e91ff20dd1b568e3a2ad9c084d1c0074/transformed/core-1.15.0/AndroidManifest.xml:26:22-94
+21
+22    <application
+22-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:6:5-26:19
+23        android:name="com.pesetas.PesetasApplication"
+23-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:7:9-43
+24        android:allowBackup="false"
+24-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:8:9-36
+25        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
+25-->[androidx.core:core:1.15.0] /Users/cperez/.gradle/caches/8.10.2/transforms/e91ff20dd1b568e3a2ad9c084d1c0074/transformed/core-1.15.0/AndroidManifest.xml:28:18-86
+26        android:dataExtractionRules="@xml/data_extraction_rules"
+26-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:9:9-65
+27        android:debuggable="true"
+28        android:extractNativeLibs="false"
+29        android:fullBackupContent="false"
+29-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:10:9-42
+30        android:icon="@mipmap/ic_launcher"
+30-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:11:9-43
+31        android:label="@string/app_name"
+31-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:12:9-41
+32        android:roundIcon="@mipmap/ic_launcher_round"
+32-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:13:9-54
+33        android:supportsRtl="true"
+33-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:14:9-35
+34        android:theme="@style/Theme.Pesetas" >
+34-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:15:9-45
+35        <activity
+35-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:16:9-25:20
+36            android:name="com.pesetas.MainActivity"
+36-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:17:13-41
+37            android:exported="true"
+37-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:18:13-36
+38            android:label="@string/app_name"
+38-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:19:13-45
+39            android:theme="@style/Theme.Pesetas" >
+39-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:20:13-49
+40            <intent-filter>
+40-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:21:13-24:29
+41                <action android:name="android.intent.action.MAIN" />
+41-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:22:17-69
+41-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:22:25-66
+42
+43                <category android:name="android.intent.category.LAUNCHER" />
+43-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:23:17-77
+43-->/Users/cperez/Repositorios/Pesetas/app/src/main/AndroidManifest.xml:23:27-74
+44            </intent-filter>
+45        </activity>
+46
+47        <provider
+47-->[androidx.emoji2:emoji2:1.3.0] /Users/cperez/.gradle/caches/8.10.2/transforms/9f5c3e13b89147f7878e5b9ce31087ef/transformed/emoji2-1.3.0/AndroidManifest.xml:24:9-32:20
+48            android:name="androidx.startup.InitializationProvider"
+48-->[androidx.emoji2:emoji2:1.3.0] /Users/cperez/.gradle/caches/8.10.2/transforms/9f5c3e13b89147f7878e5b9ce31087ef/transformed/emoji2-1.3.0/AndroidManifest.xml:25:13-67
+49            android:authorities="com.pesetas.androidx-startup"
+49-->[androidx.emoji2:emoji2:1.3.0] /Users/cperez/.gradle/caches/8.10.2/transforms/9f5c3e13b89147f7878e5b9ce31087ef/transformed/emoji2-1.3.0/AndroidManifest.xml:26:13-68
+50            android:exported="false" >
+50-->[androidx.emoji2:emoji2:1.3.0] /Users/cperez/.gradle/caches/8.10.2/transforms/9f5c3e13b89147f7878e5b9ce31087ef/transformed/emoji2-1.3.0/AndroidManifest.xml:27:13-37
+51            <meta-data
+51-->[androidx.emoji2:emoji2:1.3.0] /Users/cperez/.gradle/caches/8.10.2/transforms/9f5c3e13b89147f7878e5b9ce31087ef/transformed/emoji2-1.3.0/AndroidManifest.xml:29:13-31:52
+52                android:name="androidx.emoji2.text.EmojiCompatInitializer"
+52-->[androidx.emoji2:emoji2:1.3.0] /Users/cperez/.gradle/caches/8.10.2/transforms/9f5c3e13b89147f7878e5b9ce31087ef/transformed/emoji2-1.3.0/AndroidManifest.xml:30:17-75
+53                android:value="androidx.startup" />
+53-->[androidx.emoji2:emoji2:1.3.0] /Users/cperez/.gradle/caches/8.10.2/transforms/9f5c3e13b89147f7878e5b9ce31087ef/transformed/emoji2-1.3.0/AndroidManifest.xml:31:17-49
+54            <meta-data
+54-->[androidx.lifecycle:lifecycle-process:2.8.7] /Users/cperez/.gradle/caches/8.10.2/transforms/5f670a75e92c094c9ca69b25e8baf026/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:29:13-31:52
+55                android:name="androidx.lifecycle.ProcessLifecycleInitializer"
+55-->[androidx.lifecycle:lifecycle-process:2.8.7] /Users/cperez/.gradle/caches/8.10.2/transforms/5f670a75e92c094c9ca69b25e8baf026/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:30:17-78
+56                android:value="androidx.startup" />
+56-->[androidx.lifecycle:lifecycle-process:2.8.7] /Users/cperez/.gradle/caches/8.10.2/transforms/5f670a75e92c094c9ca69b25e8baf026/transformed/lifecycle-process-2.8.7/AndroidManifest.xml:31:17-49
+57            <meta-data
+57-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:29:13-31:52
+58                android:name="androidx.profileinstaller.ProfileInstallerInitializer"
+58-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:30:17-85
+59                android:value="androidx.startup" />
+59-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:31:17-49
+60        </provider>
+61
+62        <activity
+62-->[androidx.compose.ui:ui-tooling-android:1.7.6] /Users/cperez/.gradle/caches/8.10.2/transforms/fd2320040cc5d185d5a38328c865e33e/transformed/ui-tooling-release/AndroidManifest.xml:23:9-25:39
+63            android:name="androidx.compose.ui.tooling.PreviewActivity"
+63-->[androidx.compose.ui:ui-tooling-android:1.7.6] /Users/cperez/.gradle/caches/8.10.2/transforms/fd2320040cc5d185d5a38328c865e33e/transformed/ui-tooling-release/AndroidManifest.xml:24:13-71
+64            android:exported="true" />
+64-->[androidx.compose.ui:ui-tooling-android:1.7.6] /Users/cperez/.gradle/caches/8.10.2/transforms/fd2320040cc5d185d5a38328c865e33e/transformed/ui-tooling-release/AndroidManifest.xml:25:13-36
+65
+66        <service
+66-->[androidx.room:room-runtime:2.6.1] /Users/cperez/.gradle/caches/8.10.2/transforms/695447a97f1b60f3533008574803f533/transformed/room-runtime-2.6.1/AndroidManifest.xml:24:9-28:63
+67            android:name="androidx.room.MultiInstanceInvalidationService"
+67-->[androidx.room:room-runtime:2.6.1] /Users/cperez/.gradle/caches/8.10.2/transforms/695447a97f1b60f3533008574803f533/transformed/room-runtime-2.6.1/AndroidManifest.xml:25:13-74
+68            android:directBootAware="true"
+68-->[androidx.room:room-runtime:2.6.1] /Users/cperez/.gradle/caches/8.10.2/transforms/695447a97f1b60f3533008574803f533/transformed/room-runtime-2.6.1/AndroidManifest.xml:26:13-43
+69            android:exported="false" />
+69-->[androidx.room:room-runtime:2.6.1] /Users/cperez/.gradle/caches/8.10.2/transforms/695447a97f1b60f3533008574803f533/transformed/room-runtime-2.6.1/AndroidManifest.xml:27:13-37
+70
+71        <receiver
+71-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:34:9-52:20
+72            android:name="androidx.profileinstaller.ProfileInstallReceiver"
+72-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:35:13-76
+73            android:directBootAware="false"
+73-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:36:13-44
+74            android:enabled="true"
+74-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:37:13-35
+75            android:exported="true"
+75-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:38:13-36
+76            android:permission="android.permission.DUMP" >
+76-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:39:13-57
+77            <intent-filter>
+77-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:40:13-42:29
+78                <action android:name="androidx.profileinstaller.action.INSTALL_PROFILE" />
+78-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:17-91
+78-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:41:25-88
+79            </intent-filter>
+80            <intent-filter>
+80-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:43:13-45:29
+81                <action android:name="androidx.profileinstaller.action.SKIP_FILE" />
+81-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:17-85
+81-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:44:25-82
+82            </intent-filter>
+83            <intent-filter>
+83-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:46:13-48:29
+84                <action android:name="androidx.profileinstaller.action.SAVE_PROFILE" />
+84-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:17-88
+84-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:47:25-85
+85            </intent-filter>
+86            <intent-filter>
+86-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:49:13-51:29
+87                <action android:name="androidx.profileinstaller.action.BENCHMARK_OPERATION" />
+87-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:17-95
+87-->[androidx.profileinstaller:profileinstaller:1.3.1] /Users/cperez/.gradle/caches/8.10.2/transforms/038fa6f0b515411528baccaf7ff81cbc/transformed/profileinstaller-1.3.1/AndroidManifest.xml:50:25-92
+88            </intent-filter>
+89        </receiver>
+90    </application>
+91
+92</manifest>

@@ -1,0 +1,25 @@
+*.iml
+.gradle/
+.kotlin/
+/local.properties
+/.idea/
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+app/build/
+build/
+
+# Firmas y secretos (nunca subir al repositorio)
+/keystore/
+*.jks
+*.keystore
+keystore.properties
+
+# APKs y bundles, salvo la release publicada en releases/
+*.apk
+*.aab
+!releases/*.apk
+/.claude/

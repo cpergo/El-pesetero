@@ -1,0 +1,3 @@
+-keepattributes *Annotation*
+-keep class com.pesetas.data.local.entity.** { *; }
+-keep class com.pesetas.data.backup.dto.** { *; }

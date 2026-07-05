@@ -1,0 +1,164 @@
+<div align="center">
+
+<img src="docs/el-pesetero-readme.gif" alt="El pesetero" width="600">
+
+<p><strong>Control de gastos para Android — 100 % local, de código abierto y sin límites.</strong><br>
+Sin cuentas, sin servidores, sin anuncios. Tus datos nunca salen de tu teléfono.</p>
+
+<p>
+<img src="https://img.shields.io/badge/Licencia-MIT-C89B3C?style=for-the-badge" alt="Licencia MIT">
+<img src="https://img.shields.io/badge/Android-8.0%2B-2D5F4C?style=for-the-badge&logo=android&logoColor=white" alt="Android 8+">
+<img src="https://img.shields.io/badge/Kotlin-Jetpack%20Compose-C89B3C?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin y Jetpack Compose">
+<img src="https://img.shields.io/badge/Sin%20INTERNET-100%25%20local-2D5F4C?style=for-the-badge" alt="Sin INTERNET, 100% local">
+</p>
+
+<p>
+<a href="https://github.com/cpergo/El-pesetero/raw/main/releases/peseta-1.0.0.apk"><strong>⬇️&nbsp;Descargar APK</strong></a>
+&nbsp;·&nbsp;
+<a href="https://cpergo.github.io/El-pesetero/"><strong>🌐&nbsp;Web</strong></a>
+</p>
+
+</div>
+
+---
+
+**El pesetero** es una app Android nativa para llevar el control de tus gastos e ingresos.
+Está construida con **Kotlin + Jetpack Compose** sobre una arquitectura **MVVM** en capas
+(`data` / `domain` / `ui`), con persistencia **100 % local** en **Room (SQLite)** y **sin
+ningún permiso de red**: es técnicamente incapaz de transmitir datos.
+
+## ✨ Características
+
+<table>
+<tr>
+<td width="250" valign="top"><img src="docs/screenshots/home.png" width="230"></td>
+<td width="470" valign="top">
+<h3>Pantalla principal</h3>
+<p>Donut de gastos por categoría dibujado con <code>Canvas</code> de Compose e <strong>interactivo</strong>: al mantener pulsada una porción se resuelve la categoría por <em>hit-testing</em> (ángulo + radio) y se muestran sus datos en el centro. Balance, ingresos y gastos del mes se calculan de forma <strong>reactiva</strong> con <code>Flow</code> + <code>StateFlow</code>, con navegación entre meses.</p>
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="470" valign="top">
+<h3>Movimientos</h3>
+<p>Listado observado desde <strong>Room con <code>Flow</code></strong>, agrupado por día y <strong>filtrable</strong> por mes, cuenta o categoría. Alta, edición y borrado de ingresos, gastos y transferencias, con validación en el <code>ViewModel</code> y estado de UI inmutable (<code>StateFlow</code>).</p>
+</td>
+<td width="250" valign="top"><img src="docs/screenshots/movimientos.png" width="230"></td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="250" valign="top"><img src="docs/screenshots/categorias.png" width="230"></td>
+<td width="470" valign="top">
+<h3>Categorías ilimitadas</h3>
+<p>Categorías sin límite, cada una con icono (<strong>Material Symbols</strong>) y color, persistidas en Room y <strong>reordenables</strong>. Nada de muros de pago: justo lo que otras apps cobran, aquí es gratis.</p>
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="470" valign="top">
+<h3>Cuentas y transferencias</h3>
+<p>Múltiples cuentas con <strong>saldo calculado mediante agregación SQL</strong> (inicial + ingresos − gastos ± transferencias), saldo total combinado y transferencias entre cuentas modeladas como un tipo de transacción propio.</p>
+</td>
+<td width="250" valign="top"><img src="docs/screenshots/cuentas.png" width="230"></td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="250" valign="top"><img src="docs/screenshots/estadisticas.png" width="230"></td>
+<td width="470" valign="top">
+<h3>Estadísticas</h3>
+<p>Comparativa de ingresos y gastos <strong>mes a mes</strong>, evolución de una categoría concreta y filtro por <strong>rango de fechas</strong> personalizado. Agregaciones calculadas en el repositorio y gráficos dibujados con <code>Canvas</code>.</p>
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="470" valign="top">
+<h3>Copias de seguridad y privacidad</h3>
+<p>Exportación a <strong>CSV</strong> y backup/restauración de la base de datos completa vía <strong>Storage Access Framework</strong> (sin permisos amplios de almacenamiento). Bloqueo opcional con <code>BiometricPrompt</code> (huella o PIN del dispositivo). <code>allowBackup=false</code> y <strong>sin <code>android.permission.INTERNET</code></strong>.</p>
+</td>
+<td width="250" valign="top"><img src="docs/screenshots/ajustes.png" width="230"></td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="250" valign="top"><img src="docs/screenshots/home-dark.png" width="230"></td>
+<td width="470" valign="top">
+<h3>Tema claro y oscuro</h3>
+<p><strong>Material 3</strong> con un esquema de color propio inspirado en la antigua moneda de 500 pesetas. Modo claro, oscuro o automático según el sistema, con las preferencias guardadas en <strong>DataStore</strong>.</p>
+</td>
+</tr>
+</table>
+
+## 🧱 Arquitectura y stack
+
+- **Lenguaje / UI:** Kotlin · Jetpack Compose · Material 3
+- **Arquitectura:** MVVM en capas `data` / `domain` / `ui`, estado con `StateFlow`
+- **Persistencia:** Room (SQLite) como única fuente de datos · DataStore para preferencias
+- **Asincronía:** Coroutines + Flow (datos reactivos de extremo a extremo)
+- **Inyección de dependencias:** Hilt
+- **Navegación:** Navigation Compose
+- **Seguridad:** BiometricPrompt · Storage Access Framework para los backups
+- **Build:** Gradle con Kotlin DSL y *version catalog* · `minSdk 26` · `targetSdk 35`
+
+```
+app/src/main/java/com/pesetas/
+├── data/      # Room (entidades, DAOs), repositorios, backup
+├── domain/    # modelos y contratos de repositorio
+├── di/        # módulos de Hilt
+└── ui/        # tema, navegación, componentes y una pantalla por feature
+```
+
+## 🔒 Privacidad
+
+- **Sin permiso de INTERNET** en el manifiesto: la app no puede abrir conexiones de red.
+- Sin cuentas, sin registro, sin analítica ni SDKs de terceros.
+- La base de datos vive en el almacenamiento privado de la app; los backups los controlas tú.
+
+## 🚀 Compilación e instalación
+
+**Usar la app (APK ya compilado):** descarga el APK desde [`releases/`](releases/) e instálalo
+(te pedirá permitir *orígenes desconocidos*).
+
+**Compilar desde el código:**
+
+```bash
+git clone https://github.com/cpergo/El-pesetero.git
+cd El-pesetero
+./gradlew assembleDebug        # APK de depuración
+./gradlew installDebug         # instala en el dispositivo conectado
+```
+
+Requiere Android Studio (JDK 17 incluido) y un dispositivo o emulador con Android 8.0 (API 26) o superior.
+
+## 🤝 Contribuir
+
+Es un proyecto nuevo y las contribuciones son **bienvenidas**: abre un *issue* para proponer
+ideas o reportar fallos, o manda un *pull request*. Toda mejora suma.
+
+## 📬 Contacto
+
+<div align="center">
+
+<a href="mailto:gomezperezcristian2004@gmail.com"><img src="https://img.shields.io/badge/Correo-gomezperezcristian2004@gmail.com-D14836?style=for-the-badge&logo=gmail&logoColor=white" alt="Correo"></a>
+<a href="https://github.com/cpergo"><img src="https://img.shields.io/badge/GitHub-cpergo-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"></a>
+<a href="https://www.linkedin.com/in/cristian-p%C3%A9rez-356961262"><img src="https://img.shields.io/badge/LinkedIn-Cristian%20P%C3%A9rez%20G%C3%B3mez-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
+
+</div>
+
+## 📄 Licencia
+
+Distribuido bajo licencia **MIT**. Consulta el archivo [LICENSE](LICENSE).
+
+<div align="center">
+<sub>Hecho con cariño para quien quiere controlar su dinero sin pagar por ello.</sub>
+</div>

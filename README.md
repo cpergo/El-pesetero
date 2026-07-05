@@ -29,75 +29,67 @@ ningún permiso de red**: es técnicamente incapaz de transmitir datos.
 
 ## ✨ Características
 
-<table>
-<tr>
-<td width="250" valign="top"><img src="docs/screenshots/home.png" width="230"></td>
-<td width="470" valign="top">
-<h3>Pantalla principal</h3>
-<p>Donut de gastos por categoría dibujado con <code>Canvas</code> de Compose e <strong>interactivo</strong>: al mantener pulsada una porción se resuelve la categoría por <em>hit-testing</em> (ángulo + radio) y se muestran sus datos en el centro. Balance, ingresos y gastos del mes se calculan de forma <strong>reactiva</strong> con <code>Flow</code> + <code>StateFlow</code>, con navegación entre meses.</p>
-</td>
-</tr>
-</table>
+<img src="docs/screenshots/home.png" align="left" width="220" hspace="24" vspace="6" alt="Pantalla principal">
 
-<table>
-<tr>
-<td width="470" valign="top">
-<h3>Movimientos</h3>
-<p>Listado observado desde <strong>Room con <code>Flow</code></strong>, agrupado por día y <strong>filtrable</strong> por mes, cuenta o categoría. Alta, edición y borrado de ingresos, gastos y transferencias, con validación en el <code>ViewModel</code> y estado de UI inmutable (<code>StateFlow</code>).</p>
-</td>
-<td width="250" valign="top"><img src="docs/screenshots/movimientos.png" width="230"></td>
-</tr>
-</table>
+### Pantalla principal
+Donut de gastos por categoría dibujado con `Canvas` de Compose e **interactivo**: al mantener
+pulsada una porción se resuelve la categoría por *hit-testing* (ángulo + radio) y se muestran
+sus datos en el centro. Balance, ingresos y gastos del mes se calculan de forma **reactiva**
+con `Flow` + `StateFlow`, con navegación entre meses.
 
-<table>
-<tr>
-<td width="250" valign="top"><img src="docs/screenshots/categorias.png" width="230"></td>
-<td width="470" valign="top">
-<h3>Categorías ilimitadas</h3>
-<p>Categorías sin límite, cada una con icono (<strong>Material Symbols</strong>) y color, persistidas en Room y <strong>reordenables</strong>. Nada de muros de pago: justo lo que otras apps cobran, aquí es gratis.</p>
-</td>
-</tr>
-</table>
+<br clear="all">
 
-<table>
-<tr>
-<td width="470" valign="top">
-<h3>Cuentas y transferencias</h3>
-<p>Múltiples cuentas con <strong>saldo calculado mediante agregación SQL</strong> (inicial + ingresos − gastos ± transferencias), saldo total combinado y transferencias entre cuentas modeladas como un tipo de transacción propio.</p>
-</td>
-<td width="250" valign="top"><img src="docs/screenshots/cuentas.png" width="230"></td>
-</tr>
-</table>
+<img src="docs/screenshots/movimientos.png" align="right" width="220" hspace="24" vspace="6" alt="Movimientos">
 
-<table>
-<tr>
-<td width="250" valign="top"><img src="docs/screenshots/estadisticas.png" width="230"></td>
-<td width="470" valign="top">
-<h3>Estadísticas</h3>
-<p>Comparativa de ingresos y gastos <strong>mes a mes</strong>, evolución de una categoría concreta y filtro por <strong>rango de fechas</strong> personalizado. Agregaciones calculadas en el repositorio y gráficos dibujados con <code>Canvas</code>.</p>
-</td>
-</tr>
-</table>
+### Movimientos
+Listado observado desde **Room con `Flow`**, agrupado por día y **filtrable** por mes, cuenta
+o categoría. Alta, edición y borrado de ingresos, gastos y transferencias, con validación en
+el `ViewModel` y estado de UI inmutable (`StateFlow`).
 
-<table>
-<tr>
-<td width="470" valign="top">
-<h3>Copias de seguridad y privacidad</h3>
-<p>Exportación a <strong>CSV</strong> y backup/restauración de la base de datos completa vía <strong>Storage Access Framework</strong> (sin permisos amplios de almacenamiento). Bloqueo opcional con <code>BiometricPrompt</code> (huella o PIN del dispositivo). <code>allowBackup=false</code> y <strong>sin <code>android.permission.INTERNET</code></strong>.</p>
-</td>
-<td width="250" valign="top"><img src="docs/screenshots/ajustes.png" width="230"></td>
-</tr>
-</table>
+<br clear="all">
 
-<table>
-<tr>
-<td width="250" valign="top"><img src="docs/screenshots/home-dark.png" width="230"></td>
-<td width="470" valign="top">
-<h3>Tema claro y oscuro</h3>
-<p><strong>Material 3</strong> con un esquema de color propio inspirado en la antigua moneda de 500 pesetas. Modo claro, oscuro o automático según el sistema, con las preferencias guardadas en <strong>DataStore</strong>.</p>
-</td>
-</tr>
-</table>
+<img src="docs/screenshots/categorias.png" align="left" width="220" hspace="24" vspace="6" alt="Categorías">
+
+### Categorías ilimitadas
+Categorías sin límite, cada una con icono (**Material Symbols**) y color, persistidas en Room
+y **reordenables**. Nada de muros de pago: justo lo que otras apps cobran, aquí es gratis.
+
+<br clear="all">
+
+<img src="docs/screenshots/cuentas.png" align="right" width="220" hspace="24" vspace="6" alt="Cuentas">
+
+### Cuentas y transferencias
+Múltiples cuentas con **saldo calculado mediante agregación SQL** (inicial + ingresos − gastos
+± transferencias), saldo total combinado y transferencias entre cuentas modeladas como un tipo
+de transacción propio.
+
+<br clear="all">
+
+<img src="docs/screenshots/estadisticas.png" align="left" width="220" hspace="24" vspace="6" alt="Estadísticas">
+
+### Estadísticas
+Comparativa de ingresos y gastos **mes a mes**, evolución de una categoría concreta y filtro
+por **rango de fechas** personalizado. Agregaciones calculadas en el repositorio y gráficos
+dibujados con `Canvas`.
+
+<br clear="all">
+
+<img src="docs/screenshots/ajustes.png" align="right" width="220" hspace="24" vspace="6" alt="Copias de seguridad y privacidad">
+
+### Copias de seguridad y privacidad
+Exportación a **CSV** y backup/restauración de la base de datos completa vía **Storage Access
+Framework** (sin permisos amplios de almacenamiento). Bloqueo opcional con `BiometricPrompt`
+(huella o PIN del dispositivo). `allowBackup=false` y **sin** `android.permission.INTERNET`.
+
+<br clear="all">
+
+<img src="docs/screenshots/home-dark.png" align="left" width="220" hspace="24" vspace="6" alt="Tema claro y oscuro">
+
+### Tema claro y oscuro
+**Material 3** con un esquema de color propio inspirado en la antigua moneda de 500 pesetas.
+Modo claro, oscuro o automático según el sistema, con las preferencias guardadas en **DataStore**.
+
+<br clear="all">
 
 ## 🧱 Arquitectura y stack
 

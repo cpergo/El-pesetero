@@ -47,6 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.pesetas.R
+import com.pesetas.ui.components.PesetasTopBar
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
@@ -58,16 +59,8 @@ fun AboutScreen(onBack: () -> Unit) {
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Acerca de") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                },
-            )
-        },
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+        topBar = { PesetasTopBar(title = "Acerca de", onBack = onBack) },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -96,7 +89,7 @@ fun AboutScreen(onBack: () -> Unit) {
                     .padding(top = 8.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Stat(label = "Versión", value = "1.0.0")
+                Stat(label = "Versión", value = "1.2.0")
                 VerticalDivider(
                     modifier = Modifier.height(40.dp),
                     color = MaterialTheme.colorScheme.outlineVariant,
@@ -117,6 +110,13 @@ fun AboutScreen(onBack: () -> Unit) {
                 text = "Detrás del proyecto",
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                text = "Cristian Pérez Gómez",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center,
             )
             Text(
                 text = "Me paso el día entre Kubernetes, la nube y la inteligencia artificial, y aprendo " +
@@ -195,7 +195,7 @@ private fun LinkChip(icon: ImageVector, text: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .clip(RoundedCornerShape(50))
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(50))
+            .border(2.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(50))
             .clickable(onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,

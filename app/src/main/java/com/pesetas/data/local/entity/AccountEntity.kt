@@ -11,4 +11,5 @@ data class AccountEntity(
     val colorArgb: Int,
     val initialBalance: Double,
     val position: Int,
+    val currency: String = "EUR",
 )

@@ -104,11 +104,15 @@ fun DonutChart(
 
         if (total > 0f) {
             val ringRadius = (diameter.value - thickness.value) / 2f
+            val maxIconSize = thickness.value * 0.5f
+            val minIconSize = 9.5f
             var startAngle = -90f
             slices.forEachIndexed { index, slice ->
                 val fraction = slice.value.toFloat() / total
                 val sweep = fraction * 360f
-                if (fraction >= 0.07f && slice.iconKey != null) {
+                val arcWidth = Math.toRadians(sweep.toDouble()).toFloat() * ringRadius
+                val iconSize = (arcWidth * 0.82f).coerceAtMost(maxIconSize)
+                if (slice.iconKey != null && iconSize >= minIconSize) {
                     val angle = Math.toRadians((startAngle + sweep / 2f).toDouble())
                     val x = (ringRadius * cos(angle)).toFloat()
                     val y = (ringRadius * sin(angle)).toFloat()
@@ -125,7 +129,7 @@ fun DonutChart(
                         modifier = Modifier
                             .align(Alignment.Center)
                             .offset(x = x.dp, y = y.dp)
-                            .size(thickness * 0.5f),
+                            .size(iconSize.dp),
                     )
                 }
                 startAngle += sweep

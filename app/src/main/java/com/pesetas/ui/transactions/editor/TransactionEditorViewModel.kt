@@ -1,14 +1,18 @@
 package com.pesetas.ui.transactions.editor
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pesetas.data.files.ReceiptImageStore
 import com.pesetas.domain.model.CategoryType
 import com.pesetas.domain.model.Transaction
 import com.pesetas.domain.model.TransactionType
 import com.pesetas.domain.repository.AccountRepository
 import com.pesetas.domain.repository.CategoryRepository
+import com.pesetas.domain.repository.TagRepository
 import com.pesetas.domain.repository.TransactionRepository
+import com.pesetas.ui.components.CategoryColors
 import com.pesetas.ui.navigation.Routes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -31,6 +35,8 @@ private data class EditorForm(
     val categoryId: Long?,
     val accountId: Long?,
     val note: String,
+    val receiptImagePath: String?,
+    val selectedTagIds: Set<Long>,
 )
 
 @HiltViewModel
@@ -39,6 +45,8 @@ class TransactionEditorViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
     categoryRepository: CategoryRepository,
     private val accountRepository: AccountRepository,
+    private val receiptImageStore: ReceiptImageStore,
+    private val tagRepository: TagRepository,
 ) : ViewModel() {
 
     private val transactionId: Long = savedStateHandle.get<Long>(Routes.ARG_TRANSACTION_ID) ?: -1L
@@ -56,8 +64,13 @@ class TransactionEditorViewModel @Inject constructor(
             categoryId = null,
             accountId = null,
             note = "",
+            receiptImagePath = null,
+            selectedTagIds = emptySet(),
         ),
     )
+
+    private var originalReceiptPath: String? = null
+    private var pendingCapturePath: String? = null
 
     private val _finished = MutableSharedFlow<Unit>()
     val finished = _finished.asSharedFlow()
@@ -66,7 +79,8 @@ class TransactionEditorViewModel @Inject constructor(
         form,
         categoryRepository.observeCategories(),
         accountRepository.observeAccounts(),
-    ) { current, categories, accounts ->
+        tagRepository.observeTags(),
+    ) { current, categories, accounts, tags ->
         val wantedType = if (current.type == TransactionType.INCOME) {
             CategoryType.INCOME
         } else {
@@ -81,8 +95,11 @@ class TransactionEditorViewModel @Inject constructor(
             categoryId = current.categoryId,
             accountId = current.accountId ?: accounts.firstOrNull()?.id,
             note = current.note,
+            receiptImagePath = current.receiptImagePath,
             categories = categories.filter { it.type == wantedType },
             accounts = accounts,
+            tags = tags,
+            selectedTagIds = current.selectedTagIds,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -94,6 +111,8 @@ class TransactionEditorViewModel @Inject constructor(
         viewModelScope.launch {
             if (transactionId > 0) {
                 transactionRepository.getTransaction(transactionId)?.let { existing ->
+                    originalReceiptPath = existing.receiptImagePath
+                    val existingTagIds = tagRepository.getTagIdsForTransaction(transactionId).toSet()
                     form.update {
                         it.copy(
                             isLoading = false,
@@ -104,6 +123,8 @@ class TransactionEditorViewModel @Inject constructor(
                             categoryId = existing.categoryId,
                             accountId = existing.accountId,
                             note = existing.note,
+                            receiptImagePath = existing.receiptImagePath,
+                            selectedTagIds = existingTagIds,
                         )
                     }
                 } ?: form.update { it.copy(isLoading = false) }
@@ -138,11 +159,76 @@ class TransactionEditorViewModel @Inject constructor(
         form.update { it.copy(note = note) }
     }
 
+    fun toggleTag(tagId: Long) {
+        form.update {
+            val current = it.selectedTagIds
+            it.copy(
+                selectedTagIds = if (tagId in current) current - tagId else current + tagId,
+            )
+        }
+    }
+
+    fun createTag(name: String) {
+        if (name.isBlank()) return
+        viewModelScope.launch {
+            val existingCount = uiState.value.tags.size
+            val color = CategoryColors[existingCount % CategoryColors.size]
+            val newId = tagRepository.createTag(name, color)
+            form.update { it.copy(selectedTagIds = it.selectedTagIds + newId) }
+        }
+    }
+
+    fun newCaptureUri(): Uri {
+        val (uri, tempPath) = receiptImageStore.newCaptureTarget()
+        pendingCapturePath = tempPath
+        return uri
+    }
+
+    fun onCaptureResult(success: Boolean) {
+        val tempPath = pendingCapturePath ?: return
+        pendingCapturePath = null
+        if (!success) {
+            receiptImageStore.discardCapture(tempPath)
+            return
+        }
+        viewModelScope.launch {
+            receiptImageStore.storeCapture(tempPath)?.let { attachReceipt(it) }
+        }
+    }
+
+    fun onImagePicked(source: Uri?) {
+        if (source == null) return
+        viewModelScope.launch {
+            receiptImageStore.storeFromUri(source)?.let { attachReceipt(it) }
+        }
+    }
+
+    fun removeReceipt() {
+        val current = form.value.receiptImagePath ?: return
+        viewModelScope.launch {
+            if (current != originalReceiptPath) {
+                receiptImageStore.delete(current)
+            }
+            form.update { it.copy(receiptImagePath = null) }
+        }
+    }
+
+    private suspend fun attachReceipt(path: String) {
+        val previous = form.value.receiptImagePath
+        if (previous != null && previous != originalReceiptPath) {
+            receiptImageStore.delete(previous)
+        }
+        form.update { it.copy(receiptImagePath = path) }
+    }
+
     fun save() {
         val state = uiState.value
         if (!state.canSave) return
         viewModelScope.launch {
-            transactionRepository.upsert(
+            if (originalReceiptPath != null && originalReceiptPath != state.receiptImagePath) {
+                receiptImageStore.delete(originalReceiptPath)
+            }
+            val insertedId = transactionRepository.upsert(
                 Transaction(
                     id = if (transactionId > 0) transactionId else 0,
                     amount = state.amount,
@@ -152,8 +238,11 @@ class TransactionEditorViewModel @Inject constructor(
                     accountId = state.accountId!!,
                     transferAccountId = null,
                     note = state.note.trim(),
+                    receiptImagePath = state.receiptImagePath,
                 ),
             )
+            val resolvedId = if (transactionId > 0) transactionId else insertedId
+            tagRepository.setTagsForTransaction(resolvedId, state.selectedTagIds.toList())
             _finished.emit(Unit)
         }
     }
@@ -161,8 +250,9 @@ class TransactionEditorViewModel @Inject constructor(
     fun delete() {
         if (transactionId <= 0) return
         viewModelScope.launch {
-            transactionRepository.getTransaction(transactionId)?.let {
-                transactionRepository.delete(it)
+            transactionRepository.getTransaction(transactionId)?.let { existing ->
+                receiptImageStore.delete(existing.receiptImagePath)
+                transactionRepository.delete(existing)
             }
             _finished.emit(Unit)
         }

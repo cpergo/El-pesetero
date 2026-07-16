@@ -16,21 +16,21 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Category
+import androidx.compose.material.icons.filled.CurrencyExchange
+import androidx.compose.material.icons.filled.EventRepeat
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material.icons.filled.Wallet
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,6 +45,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pesetas.domain.model.AppTheme
+import com.pesetas.ui.components.PesetasSnackbarHost
+import com.pesetas.ui.components.PesetasSwitch
+import com.pesetas.ui.components.AppCard
+import com.pesetas.ui.components.AppChip
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,6 +56,10 @@ import kotlinx.coroutines.flow.collectLatest
 fun SettingsScreen(
     onManageCategories: () -> Unit,
     onManageAccounts: () -> Unit,
+    onManageBudgets: () -> Unit,
+    onManageCurrencies: () -> Unit,
+    onManageGoals: () -> Unit,
+    onManageRecurring: () -> Unit,
     onAbout: () -> Unit,
     onRestartRequired: () -> Unit,
     modifier: Modifier = Modifier,
@@ -87,7 +95,7 @@ fun SettingsScreen(
 
     Scaffold(
         modifier = modifier,
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { PesetasSnackbarHost(snackbarHostState) },
     ) { padding ->
         Column(
             modifier = Modifier
@@ -128,7 +136,7 @@ fun SettingsScreen(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
-                    Switch(
+                    PesetasSwitch(
                         checked = state.appLockEnabled,
                         onCheckedChange = { enabled ->
                             if (enabled && !canAuthenticate(context)) {
@@ -149,6 +157,34 @@ fun SettingsScreen(
                 SettingsItem(icon = Icons.Filled.Category, title = "Categorías", onClick = onManageCategories)
                 HorizontalDivider()
                 SettingsItem(icon = Icons.Filled.Wallet, title = "Cuentas", onClick = onManageAccounts)
+                HorizontalDivider()
+                SettingsItem(
+                    icon = Icons.Filled.Savings,
+                    title = "Presupuestos",
+                    subtitle = "Límite mensual de gasto por categoría",
+                    onClick = onManageBudgets,
+                )
+                HorizontalDivider()
+                SettingsItem(
+                    icon = Icons.Filled.EventRepeat,
+                    title = "Movimientos recurrentes",
+                    subtitle = "Alquiler, suscripciones, nómina…",
+                    onClick = onManageRecurring,
+                )
+                HorizontalDivider()
+                SettingsItem(
+                    icon = Icons.Filled.Flag,
+                    title = "Objetivos de ahorro",
+                    subtitle = "Metas con aportaciones manuales",
+                    onClick = onManageGoals,
+                )
+                HorizontalDivider()
+                SettingsItem(
+                    icon = Icons.Filled.CurrencyExchange,
+                    title = "Divisas",
+                    subtitle = "Divisa principal y tasas de conversión manuales",
+                    onClick = onManageCurrencies,
+                )
             }
 
             SettingsSection(title = "Copias de seguridad") {
@@ -183,12 +219,12 @@ fun SettingsScreen(
 
 @Composable
 private fun ThemeChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    FilterChip(selected = selected, onClick = onClick, label = { Text(label) })
+    AppChip(selected = selected, onClick = onClick, label = label)
 }
 
 @Composable
 private fun SettingsSection(title: String, content: @Composable () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 text = title,

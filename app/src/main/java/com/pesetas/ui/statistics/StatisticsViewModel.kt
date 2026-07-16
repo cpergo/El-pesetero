@@ -2,8 +2,10 @@ package com.pesetas.ui.statistics
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pesetas.domain.model.CategorySpending
 import com.pesetas.domain.model.MonthlyTotals
 import com.pesetas.domain.repository.CategoryRepository
+import com.pesetas.domain.repository.TagRepository
 import com.pesetas.domain.repository.TransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -23,10 +25,12 @@ private data class Range(val from: YearMonth, val to: YearMonth)
 class StatisticsViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
     categoryRepository: CategoryRepository,
+    tagRepository: TagRepository,
 ) : ViewModel() {
 
     private val range = MutableStateFlow(Range(YearMonth.now().minusMonths(5), YearMonth.now()))
     private val selectedCategoryId = MutableStateFlow<Long?>(null)
+    private val selectedTagId = MutableStateFlow<Long?>(null)
 
     private val monthlyTotals = range.flatMapLatest { current ->
         transactionRepository.observeMonthlyTotalsRange(current.from, current.to)
@@ -46,13 +50,29 @@ class StatisticsViewModel @Inject constructor(
         }
     }
 
+    private val tagTotals = range.flatMapLatest { current ->
+        tagRepository.observeTagExpenseTotals(current.from, current.to)
+    }
+
+    private val tagBreakdown = combine(range, selectedTagId) { current, tagId ->
+        current to tagId
+    }.flatMapLatest { (current, tagId) ->
+        if (tagId == null) {
+            flowOf(emptyList<CategorySpending>())
+        } else {
+            tagRepository.observeTagCategoryBreakdown(tagId, current.from, current.to)
+        }
+    }
+
     val uiState = combine(
         range,
         monthlyTotals,
         categoryRepository.observeCategories(),
-        selectedCategoryId,
-        categoryEvolution,
-    ) { current, totals, categories, categoryId, evolution ->
+        combine(selectedCategoryId, categoryEvolution, ::Pair),
+        combine(selectedTagId, tagTotals, tagBreakdown, ::Triple),
+    ) { current, totals, categories, categoryState, tagState ->
+        val (categoryId, evolution) = categoryState
+        val (tagId, totalsByTag, breakdown) = tagState
         StatisticsUiState(
             isLoading = false,
             fromMonth = current.from,
@@ -61,6 +81,9 @@ class StatisticsViewModel @Inject constructor(
             categories = categories,
             selectedCategoryId = categoryId,
             categoryEvolution = evolution,
+            tagTotals = totalsByTag,
+            selectedTagId = tagId,
+            tagBreakdown = breakdown,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -79,5 +102,9 @@ class StatisticsViewModel @Inject constructor(
 
     fun selectCategory(categoryId: Long?) {
         selectedCategoryId.value = categoryId
+    }
+
+    fun selectTag(tagId: Long?) {
+        selectedTagId.value = if (selectedTagId.value == tagId) null else tagId
     }
 }

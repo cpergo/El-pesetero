@@ -2,8 +2,10 @@ package com.pesetas.ui.categories
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pesetas.domain.model.BudgetStatus
 import com.pesetas.domain.model.Category
 import com.pesetas.domain.model.CategoryType
+import com.pesetas.domain.repository.BudgetRepository
 import com.pesetas.domain.repository.CategoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -13,17 +15,20 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.YearMonth
 import javax.inject.Inject
 
 data class CategoriesUiState(
     val isLoading: Boolean = true,
     val type: CategoryType = CategoryType.EXPENSE,
     val categories: List<Category> = emptyList(),
+    val budgetStatusByCategoryId: Map<Long, BudgetStatus> = emptyMap(),
 )
 
 @HiltViewModel
 class CategoriesViewModel @Inject constructor(
     private val categoryRepository: CategoryRepository,
+    budgetRepository: BudgetRepository,
 ) : ViewModel() {
 
     private val type = MutableStateFlow(CategoryType.EXPENSE)
@@ -31,11 +36,16 @@ class CategoriesViewModel @Inject constructor(
     private val _messages = MutableSharedFlow<String>()
     val messages = _messages.asSharedFlow()
 
-    val uiState = combine(type, categoryRepository.observeCategories()) { currentType, all ->
+    val uiState = combine(
+        type,
+        categoryRepository.observeCategories(),
+        budgetRepository.observeBudgetStatuses(YearMonth.now()),
+    ) { currentType, all, budgetStatuses ->
         CategoriesUiState(
             isLoading = false,
             type = currentType,
             categories = all.filter { it.type == currentType },
+            budgetStatusByCategoryId = budgetStatuses.associateBy { it.category.id },
         )
     }.stateIn(
         scope = viewModelScope,

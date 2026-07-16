@@ -22,10 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -36,10 +33,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.pesetas.domain.model.BudgetStatus
 import com.pesetas.domain.model.Category
 import com.pesetas.domain.model.CategoryType
+import com.pesetas.ui.components.AppFab
+import com.pesetas.ui.components.BudgetProgressBar
 import com.pesetas.ui.components.EmptyState
 import com.pesetas.ui.components.IconBadge
+import com.pesetas.ui.components.PesetasSnackbarHost
+import com.pesetas.ui.components.PesetasTopBar
+import com.pesetas.ui.components.AppTabs
+import com.pesetas.ui.components.budgetSemaphoreColor
+import com.pesetas.ui.util.formatMoney
 import kotlinx.coroutines.flow.collectLatest
 import androidx.compose.runtime.LaunchedEffect
 
@@ -59,34 +64,24 @@ fun CategoriesScreen(
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Categorías") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                },
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
+        topBar = { PesetasTopBar(title = "Categorías", onBack = onBack) },
+        floatingActionButton = {
+            AppFab(
+                onClick = { onAddCategory(state.type) },
+                icon = Icons.Filled.Add,
+                contentDescription = "Añadir categoría",
             )
         },
-        floatingActionButton = {
-            FloatingActionButton(onClick = { onAddCategory(state.type) }) {
-                Icon(Icons.Filled.Add, contentDescription = "Añadir categoría")
-            }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { PesetasSnackbarHost(snackbarHostState) },
     ) { padding ->
         Column(modifier = Modifier.padding(padding).fillMaxSize()) {
             val tabs = listOf(CategoryType.EXPENSE to "Gastos", CategoryType.INCOME to "Ingresos")
-            TabRow(selectedTabIndex = tabs.indexOfFirst { it.first == state.type }) {
-                tabs.forEach { (type, label) ->
-                    Tab(
-                        selected = state.type == type,
-                        onClick = { viewModel.selectType(type) },
-                        text = { Text(label) },
-                    )
-                }
-            }
+            AppTabs(
+                tabs = tabs.map { it.second },
+                selectedIndex = tabs.indexOfFirst { it.first == state.type },
+                onSelect = { index -> viewModel.selectType(tabs[index].first) },
+            )
             if (state.categories.isEmpty()) {
                 EmptyState(
                     icon = Icons.Filled.Category,
@@ -103,6 +98,7 @@ fun CategoriesScreen(
                     items(state.categories, key = { it.id }) { category ->
                         CategoryManageRow(
                             category = category,
+                            budgetStatus = state.budgetStatusByCategoryId[category.id],
                             onClick = { onEditCategory(category.id) },
                             onMoveUp = { viewModel.moveUp(category) },
                             onMoveDown = { viewModel.moveDown(category) },
@@ -118,40 +114,65 @@ fun CategoriesScreen(
 @Composable
 private fun CategoryManageRow(
     category: Category,
+    budgetStatus: BudgetStatus?,
     onClick: () -> Unit,
     onMoveUp: () -> Unit,
     onMoveDown: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
             .padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
-        IconBadge(iconKey = category.iconKey, colorArgb = category.colorArgb, size = 40.dp)
-        Text(
-            text = category.name,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onBackground,
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 8.dp),
-        )
-        IconButton(onClick = onMoveUp) {
-            Icon(Icons.Filled.ArrowUpward, contentDescription = "Subir")
-        }
-        IconButton(onClick = onMoveDown) {
-            Icon(Icons.Filled.ArrowDownward, contentDescription = "Bajar")
-        }
-        IconButton(onClick = onDelete) {
-            Icon(
-                Icons.Filled.Delete,
-                contentDescription = "Eliminar",
-                tint = MaterialTheme.colorScheme.error,
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            IconBadge(iconKey = category.iconKey, colorArgb = category.colorArgb, size = 40.dp)
+            Text(
+                text = category.name,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(start = 8.dp),
             )
+            IconButton(onClick = onMoveUp) {
+                Icon(Icons.Filled.ArrowUpward, contentDescription = "Subir")
+            }
+            IconButton(onClick = onMoveDown) {
+                Icon(Icons.Filled.ArrowDownward, contentDescription = "Bajar")
+            }
+            IconButton(onClick = onDelete) {
+                Icon(
+                    Icons.Filled.Delete,
+                    contentDescription = "Eliminar",
+                    tint = MaterialTheme.colorScheme.error,
+                )
+            }
+        }
+        if (budgetStatus != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 48.dp, end = 12.dp, top = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                BudgetProgressBar(
+                    spent = budgetStatus.spent,
+                    limit = budgetStatus.monthlyLimit,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = "${formatMoney(budgetStatus.spent)} / ${formatMoney(budgetStatus.monthlyLimit)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = budgetSemaphoreColor(budgetStatus.ratio),
+                )
+            }
         }
     }
 }

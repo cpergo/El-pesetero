@@ -44,4 +44,5 @@ data class TransactionEntity(
     val accountId: Long,
     val transferAccountId: Long?,
     val note: String,
+    val receiptImagePath: String? = null,
 )

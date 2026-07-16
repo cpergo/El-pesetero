@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pesetas.domain.repository.AccountRepository
 import com.pesetas.domain.repository.CategoryRepository
+import com.pesetas.domain.repository.TagRepository
 import com.pesetas.domain.repository.TransactionRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,11 +28,13 @@ class TransactionsViewModel @Inject constructor(
     private val transactionRepository: TransactionRepository,
     accountRepository: AccountRepository,
     categoryRepository: CategoryRepository,
+    tagRepository: TagRepository,
 ) : ViewModel() {
 
     private val month = MutableStateFlow(YearMonth.now())
     private val accountFilter = MutableStateFlow<Long?>(null)
     private val categoryFilter = MutableStateFlow<Long?>(null)
+    private val tagFilter = MutableStateFlow<Long?>(null)
 
     private val filters = combine(month, accountFilter, categoryFilter, ::Filters)
 
@@ -40,13 +43,20 @@ class TransactionsViewModel @Inject constructor(
         accountRepository.observeAccounts(),
         categoryRepository.observeCategories(),
         month,
-        combine(accountFilter, categoryFilter) { account, category -> account to category },
-    ) { transactions, accounts, categories, currentMonth, activeFilters ->
-        val (account, category) = activeFilters
+        combine(
+            combine(accountFilter, categoryFilter, tagFilter, ::Triple),
+            tagRepository.observeTags(),
+            tagRepository.observeTransactionIdsByTag(),
+        ) { filters, tags, refs -> Triple(filters, tags, refs) },
+    ) { transactions, accounts, categories, currentMonth, extras ->
+        val (activeFilters, tags, refs) = extras
+        val (account, category, tag) = activeFilters
+        val tagTransactionIds = tag?.let { refs[it] ?: emptySet() }
         val filtered = transactions.filter { details ->
             (account == null || details.transaction.accountId == account ||
                 details.transaction.transferAccountId == account) &&
-                (category == null || details.transaction.categoryId == category)
+                (category == null || details.transaction.categoryId == category) &&
+                (tagTransactionIds == null || details.transaction.id in tagTransactionIds)
         }
         TransactionsUiState(
             isLoading = false,
@@ -54,8 +64,10 @@ class TransactionsViewModel @Inject constructor(
             items = filtered,
             accounts = accounts,
             categories = categories,
+            tags = tags,
             accountFilter = account,
             categoryFilter = category,
+            tagFilter = tag,
         )
     }.stateIn(
         scope = viewModelScope,
@@ -79,8 +91,13 @@ class TransactionsViewModel @Inject constructor(
         categoryFilter.value = categoryId
     }
 
+    fun setTagFilter(tagId: Long?) {
+        tagFilter.value = tagId
+    }
+
     fun clearFilters() {
         accountFilter.value = null
         categoryFilter.value = null
+        tagFilter.value = null
     }
 }

@@ -4,7 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.pesetas.domain.model.Account
 import com.pesetas.domain.model.AccountBalance
+import com.pesetas.domain.model.CombinedBalance
+import com.pesetas.domain.model.combineBalances
 import com.pesetas.domain.repository.AccountRepository
+import com.pesetas.domain.repository.CurrencyRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,12 +20,13 @@ import javax.inject.Inject
 data class AccountsUiState(
     val isLoading: Boolean = true,
     val accounts: List<AccountBalance> = emptyList(),
-    val totalBalance: Double = 0.0,
+    val combinedBalance: CombinedBalance = CombinedBalance(0.0, "EUR", false, null, false),
 )
 
 @HiltViewModel
 class AccountsViewModel @Inject constructor(
     private val accountRepository: AccountRepository,
+    currencyRepository: CurrencyRepository,
 ) : ViewModel() {
 
     private val _messages = MutableSharedFlow<String>()
@@ -30,12 +34,17 @@ class AccountsViewModel @Inject constructor(
 
     val uiState = combine(
         accountRepository.observeAccountBalances(),
-        accountRepository.observeTotalBalance(),
-    ) { balances, total ->
+        currencyRepository.observeRates(),
+        currencyRepository.mainCurrency,
+    ) { balances, rates, main ->
         AccountsUiState(
             isLoading = false,
             accounts = balances,
-            totalBalance = total,
+            combinedBalance = combineBalances(
+                balancesByCurrency = balances.map { it.account.currency to it.balance },
+                mainCurrency = main,
+                rates = rates.associateBy { it.currencyCode },
+            ),
         )
     }.stateIn(
         scope = viewModelScope,

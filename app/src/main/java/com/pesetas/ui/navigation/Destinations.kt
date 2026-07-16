@@ -19,11 +19,19 @@ object Routes {
     const val CATEGORY_EDITOR = "category_editor"
     const val ACCOUNTS = "accounts"
     const val ACCOUNT_EDITOR = "account_editor"
+    const val BUDGETS = "budgets"
+    const val CURRENCIES = "currencies"
+    const val GOALS = "goals"
+    const val GOAL_EDITOR = "goal_editor"
+    const val RECURRING = "recurring"
+    const val RECURRING_EDITOR = "recurring_editor"
     const val ABOUT = "about"
 
     const val ARG_TRANSACTION_ID = "transactionId"
     const val ARG_CATEGORY_ID = "categoryId"
     const val ARG_ACCOUNT_ID = "accountId"
+    const val ARG_RULE_ID = "ruleId"
+    const val ARG_GOAL_ID = "goalId"
     const val ARG_TYPE = "type"
 
     fun transactionEditor(transactionId: Long? = null, type: String? = null): String {
@@ -46,6 +54,16 @@ object Routes {
     fun transfer(transactionId: Long? = null): String {
         val id = transactionId ?: -1L
         return "$TRANSFER?$ARG_TRANSACTION_ID=$id"
+    }
+
+    fun recurringEditor(ruleId: Long? = null): String {
+        val id = ruleId ?: -1L
+        return "$RECURRING_EDITOR?$ARG_RULE_ID=$id"
+    }
+
+    fun goalEditor(goalId: Long? = null): String {
+        val id = goalId ?: -1L
+        return "$GOAL_EDITOR?$ARG_GOAL_ID=$id"
     }
 }
 

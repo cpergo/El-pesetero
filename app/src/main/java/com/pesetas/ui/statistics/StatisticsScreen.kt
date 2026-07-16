@@ -9,23 +9,18 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.Card
-import androidx.compose.material3.DateRangePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -39,15 +34,21 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pesetas.ui.components.BarGroup
+import androidx.compose.ui.draw.clip
+import com.pesetas.ui.components.LegendDot
+import com.pesetas.ui.components.IconBadge
 import com.pesetas.ui.components.GroupedBarChart
+import com.pesetas.ui.components.PesetasDateRangePickerDialog
+import com.pesetas.ui.components.PesetasDropdownMenu
 import com.pesetas.ui.components.SingleBarChart
+import com.pesetas.ui.components.AppCard
+import com.pesetas.ui.components.AppChip
+import com.pesetas.ui.components.AppOutlinedButton
 import com.pesetas.ui.theme.LocalPesetasColors
 import com.pesetas.ui.util.formatMoney
 import com.pesetas.ui.util.formatMonth
 import com.pesetas.ui.util.formatMonthShort
-import java.time.Instant
 import java.time.YearMonth
-import java.time.ZoneOffset
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -128,34 +129,37 @@ fun StatisticsScreen(
             }
         }
 
+        SectionCard(title = "Gasto por etiqueta") {
+            if (state.tagTotals.isEmpty()) {
+                EmptyChartText("Añade etiquetas a tus movimientos para agrupar gastos entre categorías")
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    state.tagTotals.forEach { spending ->
+                        TagTotalRow(
+                            spending = spending,
+                            selected = state.selectedTagId == spending.tag.id,
+                            onClick = { viewModel.selectTag(spending.tag.id) },
+                        )
+                        if (state.selectedTagId == spending.tag.id) {
+                            TagBreakdown(breakdown = state.tagBreakdown)
+                        }
+                    }
+                }
+            }
+        }
+
         Box(Modifier.height(16.dp))
     }
 
     if (showRangePicker) {
-        val rangeState = rememberDateRangePickerState()
-        DatePickerDialog(
-            onDismissRequest = { showRangePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    val start = rangeState.selectedStartDateMillis
-                    val end = rangeState.selectedEndDateMillis
-                    if (start != null && end != null) {
-                        viewModel.setCustomRange(start.toYearMonth(), end.toYearMonth())
-                    }
-                    showRangePicker = false
-                }) { Text("Aceptar") }
+        PesetasDateRangePickerDialog(
+            onConfirm = { start, end ->
+                viewModel.setCustomRange(YearMonth.from(start), YearMonth.from(end))
             },
-            dismissButton = {
-                TextButton(onClick = { showRangePicker = false }) { Text("Cancelar") }
-            },
-        ) {
-            DateRangePicker(state = rangeState, modifier = Modifier.height(460.dp))
-        }
+            onDismiss = { showRangePicker = false },
+        )
     }
 }
-
-private fun Long.toYearMonth(): YearMonth =
-    Instant.ofEpochMilli(this).atZone(ZoneOffset.UTC).toLocalDate().let { YearMonth.from(it) }
 
 @Composable
 private fun RangeSelector(
@@ -171,11 +175,11 @@ private fun RangeSelector(
             color = MaterialTheme.colorScheme.onBackground,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            FilterChip(selected = false, onClick = { onPreset(3) }, label = { Text("3 meses") })
-            FilterChip(selected = false, onClick = { onPreset(6) }, label = { Text("6 meses") })
-            FilterChip(selected = false, onClick = { onPreset(12) }, label = { Text("12 meses") })
+            AppChip(selected = false, onClick = { onPreset(3) }, label = "3 meses")
+            AppChip(selected = false, onClick = { onPreset(6) }, label = "6 meses")
+            AppChip(selected = false, onClick = { onPreset(12) }, label = "12 meses")
         }
-        OutlinedButton(onClick = onCustom) { Text("Rango personalizado") }
+        AppOutlinedButton(text = "Rango personalizado", onClick = onCustom)
     }
 }
 
@@ -194,7 +198,7 @@ private fun SummaryRow(
 
 @Composable
 private fun SummaryCard(label: String, amount: Double, color: Color, modifier: Modifier = Modifier) {
-    Card(modifier = modifier) {
+    AppCard(modifier = modifier) {
         Column(modifier = Modifier.padding(14.dp)) {
             Text(
                 text = label,
@@ -213,7 +217,7 @@ private fun SummaryCard(label: String, amount: Double, color: Color, modifier: M
 
 @Composable
 private fun SectionCard(title: String, content: @Composable () -> Unit) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    AppCard(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = title,
@@ -235,14 +239,28 @@ private fun CategorySelector(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Column {
-        OutlinedButton(onClick = { expanded = true }) {
-            Text(selectedName ?: "Selecciona categoría")
-            Icon(Icons.Filled.ArrowDropDown, contentDescription = null)
-        }
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        AppChip(
+            selected = selectedName != null,
+            onClick = { expanded = true },
+            label = selectedName ?: "Selecciona categoría",
+            leading = {
+                Icon(
+                    Icons.Filled.ArrowDropDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+        )
+        PesetasDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             categories.forEach { (id, name) ->
                 DropdownMenuItem(
-                    text = { Text(name) },
+                    text = {
+                        Text(
+                            text = name,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    },
                     onClick = {
                         onSelected(id)
                         expanded = false
@@ -266,22 +284,67 @@ private fun LegendRow(incomeColor: Color, expenseColor: Color) {
 }
 
 @Composable
-private fun LegendDot(color: Color, label: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Box(
-            modifier = Modifier
-                .size(12.dp)
-                .padding(0.dp),
-        ) {
-            androidx.compose.foundation.Canvas(modifier = Modifier.fillMaxSize()) {
-                drawCircle(color = color)
+private fun TagTotalRow(
+    spending: com.pesetas.domain.model.TagSpending,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .clickable(onClick = onClick)
+            .then(
+                if (selected) {
+                    Modifier.background(MaterialTheme.colorScheme.surfaceVariant)
+                } else {
+                    Modifier
+                },
+            )
+            .padding(horizontal = 6.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        LegendDot(Color(spending.tag.colorArgb), spending.tag.name)
+        Box(Modifier.weight(1f))
+        Text(
+            text = formatMoney(spending.total),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+@Composable
+private fun TagBreakdown(breakdown: List<com.pesetas.domain.model.CategorySpending>) {
+    Column(
+        modifier = Modifier.padding(start = 26.dp, bottom = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        breakdown.forEach { item ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                IconBadge(
+                    iconKey = item.category.iconKey,
+                    colorArgb = item.category.colorArgb,
+                    size = 22.dp,
+                )
+                Text(
+                    text = item.category.name,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f),
+                )
+                Text(
+                    text = formatMoney(item.total),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
     }
 }
 

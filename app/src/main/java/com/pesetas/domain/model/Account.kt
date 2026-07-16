@@ -7,4 +7,5 @@ data class Account(
     val colorArgb: Int,
     val initialBalance: Double,
     val position: Int = 0,
+    val currency: String = "EUR",
 )

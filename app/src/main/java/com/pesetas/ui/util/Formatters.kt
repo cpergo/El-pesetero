@@ -14,9 +14,25 @@ private val dayShortFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("
 
 fun formatMoney(amount: Double): String = currencyFormat.format(amount)
 
+fun formatMoney(amount: Double, currencyCode: String): String {
+    if (currencyCode == "EUR") return currencyFormat.format(amount)
+    val format = NumberFormat.getCurrencyInstance(locale).apply {
+        currency = java.util.Currency.getInstance(currencyCode)
+    }
+    return format.format(amount)
+}
+
+fun currencySymbol(currencyCode: String): String =
+    java.util.Currency.getInstance(currencyCode).getSymbol(locale)
+
 fun formatSignedMoney(amount: Double, positive: Boolean): String {
     val prefix = if (positive) "+" else "-"
     return prefix + currencyFormat.format(kotlin.math.abs(amount))
+}
+
+fun formatSignedMoney(amount: Double, positive: Boolean, currencyCode: String): String {
+    val prefix = if (positive) "+" else "-"
+    return prefix + formatMoney(kotlin.math.abs(amount), currencyCode)
 }
 
 fun formatDate(date: LocalDate): String = date.format(dayFormatter)

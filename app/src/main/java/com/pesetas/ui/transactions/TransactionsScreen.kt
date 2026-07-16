@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,10 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -37,6 +35,8 @@ import com.pesetas.domain.model.TransactionType
 import com.pesetas.ui.components.EmptyState
 import com.pesetas.ui.components.LoadingState
 import com.pesetas.ui.components.MonthNavigator
+import com.pesetas.ui.components.PesetasDropdownMenu
+import com.pesetas.ui.components.AppChip
 import com.pesetas.ui.util.formatDayHeader
 import com.pesetas.ui.util.formatMoney
 import java.time.LocalDate
@@ -60,10 +60,13 @@ fun TransactionsScreen(
         FilterRow(
             accountName = state.accounts.firstOrNull { it.id == state.accountFilter }?.name,
             categoryName = state.categories.firstOrNull { it.id == state.categoryFilter }?.name,
+            tagName = state.tags.firstOrNull { it.id == state.tagFilter }?.name,
             accounts = state.accounts.map { it.id to it.name },
             categories = state.categories.map { it.id to it.name },
+            tags = state.tags.map { it.id to it.name },
             onAccountSelected = viewModel::setAccountFilter,
             onCategorySelected = viewModel::setCategoryFilter,
+            onTagSelected = viewModel::setTagFilter,
             onClear = viewModel::clearFilters,
         )
 
@@ -87,10 +90,13 @@ fun TransactionsScreen(
 private fun FilterRow(
     accountName: String?,
     categoryName: String?,
+    tagName: String?,
     accounts: List<Pair<Long, String>>,
     categories: List<Pair<Long, String>>,
+    tags: List<Pair<Long, String>>,
     onAccountSelected: (Long?) -> Unit,
     onCategorySelected: (Long?) -> Unit,
+    onTagSelected: (Long?) -> Unit,
     onClear: () -> Unit,
 ) {
     Row(
@@ -113,15 +119,25 @@ private fun FilterRow(
             options = categories,
             onSelected = onCategorySelected,
         )
-        if (accountName != null || categoryName != null) {
-            AssistChip(
+        if (tags.isNotEmpty()) {
+            DropdownFilterChip(
+                label = tagName ?: "Etiqueta",
+                selected = tagName != null,
+                options = tags,
+                onSelected = onTagSelected,
+            )
+        }
+        if (accountName != null || categoryName != null || tagName != null) {
+            AppChip(
+                selected = false,
                 onClick = onClear,
-                label = { Text("Limpiar") },
-                leadingIcon = {
+                label = "Limpiar",
+                leading = {
                     Icon(
                         Icons.Filled.Close,
                         contentDescription = null,
-                        modifier = Modifier.padding(0.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(0.dp).size(16.dp),
                     )
                 },
             )
@@ -138,12 +154,12 @@ private fun DropdownFilterChip(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Column {
-        FilterChip(
+        AppChip(
             selected = selected,
             onClick = { expanded = true },
-            label = { Text(label) },
+            label = label,
         )
-        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        PesetasDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             DropdownMenuItem(
                 text = { Text("Todas") },
                 onClick = {
@@ -215,6 +231,10 @@ private fun DayHeader(date: LocalDate, items: List<TransactionDetails>) {
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        HorizontalDivider(modifier = Modifier.padding(top = 4.dp))
+        HorizontalDivider(
+            modifier = Modifier.padding(top = 4.dp),
+            thickness = 1.5.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f),
+        )
     }
 }

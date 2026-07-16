@@ -16,15 +16,12 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.SwapHoriz
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -39,8 +36,13 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.pesetas.domain.model.AccountBalance
+import com.pesetas.ui.components.AppFab
 import com.pesetas.ui.components.IconBadge
+import com.pesetas.ui.components.PesetasSnackbarHost
+import com.pesetas.ui.components.PesetasTopBar
+import com.pesetas.ui.components.AppCard
 import com.pesetas.ui.components.LoadingState
+import com.pesetas.ui.util.formatDate
 import com.pesetas.ui.util.formatMoney
 import kotlinx.coroutines.flow.collectLatest
 
@@ -61,14 +63,11 @@ fun AccountsScreen(
     }
 
     Scaffold(
+        containerColor = androidx.compose.ui.graphics.Color.Transparent,
         topBar = {
-            TopAppBar(
-                title = { Text("Cuentas") },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
-                    }
-                },
+            PesetasTopBar(
+                title = "Cuentas",
+                onBack = onBack,
                 actions = {
                     IconButton(onClick = onNewTransfer) {
                         Icon(Icons.Filled.SwapHoriz, contentDescription = "Nueva transferencia")
@@ -77,11 +76,13 @@ fun AccountsScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddAccount) {
-                Icon(Icons.Filled.Add, contentDescription = "Añadir cuenta")
-            }
+            AppFab(
+                onClick = onAddAccount,
+                icon = Icons.Filled.Add,
+                contentDescription = "Añadir cuenta",
+            )
         },
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { PesetasSnackbarHost(snackbarHostState) },
     ) { padding ->
         if (state.isLoading) {
             LoadingState(Modifier.padding(padding))
@@ -95,13 +96,11 @@ fun AccountsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {
-                Card(
+                AppCard(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    ),
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
                 ) {
                     Column(
                         modifier = Modifier
@@ -115,11 +114,33 @@ fun AccountsScreen(
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                         Text(
-                            text = formatMoney(state.totalBalance),
+                            text = buildString {
+                                if (state.combinedBalance.isApproximate) append("≈ ")
+                                append(
+                                    formatMoney(
+                                        state.combinedBalance.total,
+                                        state.combinedBalance.mainCurrency,
+                                    ),
+                                )
+                            },
                             style = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
+                        if (state.combinedBalance.isApproximate) {
+                            Text(
+                                text = when {
+                                    state.combinedBalance.hasMissingRates ->
+                                        "Aprox. · faltan tasas por definir en Ajustes → Divisas"
+                                    state.combinedBalance.oldestRateDate != null ->
+                                        "Aprox. con tasas manuales del " +
+                                            formatDate(state.combinedBalance.oldestRateDate!!)
+                                    else -> "Aprox. con tasas manuales"
+                                },
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                        }
                     }
                 }
             }
@@ -144,7 +165,7 @@ private fun AccountRow(
     onMoveDown: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    Card {
+    AppCard {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -165,7 +186,7 @@ private fun AccountRow(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = formatMoney(item.balance),
+                    text = formatMoney(item.balance, item.account.currency),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.primary,

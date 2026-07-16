@@ -14,12 +14,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -31,13 +33,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.pesetas.domain.model.BudgetStatus
 import com.pesetas.domain.model.CategorySpending
+import com.pesetas.domain.model.GeneratedRecurring
+import com.pesetas.domain.model.TransactionType
 import com.pesetas.ui.components.DonutChart
 import com.pesetas.ui.components.DonutSlice
 import com.pesetas.ui.components.LoadingState
 import com.pesetas.ui.components.MonthNavigator
+import com.pesetas.ui.components.AppButton
+import com.pesetas.ui.components.AppCard
+import com.pesetas.ui.components.budgetSemaphoreColor
 import com.pesetas.ui.theme.LocalPesetasColors
+import com.pesetas.ui.util.formatDayHeader
 import com.pesetas.ui.util.formatMoney
+import com.pesetas.ui.util.formatSignedMoney
 
 @Composable
 fun HomeScreen(
@@ -64,6 +74,18 @@ fun HomeScreen(
             onNext = viewModel::showNextMonth,
             modifier = Modifier.padding(top = 8.dp),
         )
+        if (state.generatedRecurring.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            GeneratedRecurringNotice(
+                items = state.generatedRecurring,
+                onUndo = viewModel::undoGenerated,
+                onDismiss = viewModel::dismissGenerated,
+            )
+        }
+        if (state.budgetAlerts.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            BudgetAlertsBanner(alerts = state.budgetAlerts)
+        }
         Spacer(Modifier.height(12.dp))
         BalanceHeader(
             balance = state.monthBalance,
@@ -82,6 +104,110 @@ fun HomeScreen(
             onAddExpense = onAddExpense,
         )
         Spacer(Modifier.weight(1f))
+    }
+}
+
+@Composable
+private fun BudgetAlertsBanner(alerts: List<BudgetStatus>) {
+    AppCard(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            alerts.forEach { status ->
+                val color = budgetSemaphoreColor(status.ratio)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Warning,
+                        contentDescription = null,
+                        tint = color,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Text(
+                        text = if (status.isOverLimit) {
+                            "${status.category.name}: presupuesto superado"
+                        } else {
+                            "${status.category.name}: ${(status.ratio * 100).toInt()} % del presupuesto"
+                        },
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = "${formatMoney(status.spent)} / ${formatMoney(status.monthlyLimit)}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = color,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GeneratedRecurringNotice(
+    items: List<GeneratedRecurring>,
+    onUndo: (Long) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val colors = LocalPesetasColors.current
+    AppCard(
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 14.dp, end = 6.dp, top = 6.dp, bottom = 10.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = "Añadido automáticamente",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f),
+                )
+                IconButton(onClick = onDismiss) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = "Cerrar aviso",
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
+            items.forEach { generated ->
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = "${generated.label} · " +
+                            formatSignedMoney(
+                                generated.amount,
+                                positive = generated.type == TransactionType.INCOME,
+                            ) +
+                            " (${formatDayHeader(generated.date)})",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f),
+                        maxLines = 2,
+                    )
+                    TextButton(onClick = { onUndo(generated.transactionId) }) {
+                        Text(
+                            text = "Deshacer",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = colors.expense,
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -243,30 +369,22 @@ private fun ExpenseDonut(
 @Composable
 private fun QuickActions(onAddIncome: () -> Unit, onAddExpense: () -> Unit) {
     val colors = LocalPesetasColors.current
-    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Button(
+    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        AppButton(
+            text = "Ingreso",
             onClick = onAddIncome,
+            icon = Icons.AutoMirrored.Filled.TrendingUp,
+            containerColor = colors.income,
+            contentColor = Color.White,
             modifier = Modifier.weight(1f),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = colors.income,
-                contentColor = Color.White,
-            ),
-        ) {
-            Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text("Ingreso")
-        }
-        Button(
+        )
+        AppButton(
+            text = "Gasto",
             onClick = onAddExpense,
+            icon = Icons.AutoMirrored.Filled.TrendingDown,
+            containerColor = colors.expense,
+            contentColor = Color.White,
             modifier = Modifier.weight(1f),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = colors.expense,
-                contentColor = Color.White,
-            ),
-        ) {
-            Icon(Icons.AutoMirrored.Filled.TrendingDown, contentDescription = null)
-            Spacer(Modifier.width(8.dp))
-            Text("Gasto")
-        }
+        )
     }
 }

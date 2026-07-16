@@ -23,6 +23,7 @@ data class AccountEditorUiState(
     val iconKey: String = "account_balance_wallet",
     val colorArgb: Int = CategoryColors.first(),
     val initialBalanceText: String = "0",
+    val currency: String = "EUR",
 ) {
     val initialBalance: Double
         get() = initialBalanceText.replace(',', '.').toDoubleOrNull() ?: 0.0
@@ -61,6 +62,7 @@ class AccountEditorViewModel @Inject constructor(
                             iconKey = account.iconKey,
                             colorArgb = account.colorArgb,
                             initialBalanceText = account.initialBalance.toString(),
+                            currency = account.currency,
                         )
                     }
                 } ?: _uiState.update { it.copy(isLoading = false) }
@@ -73,6 +75,8 @@ class AccountEditorViewModel @Inject constructor(
     fun setIcon(iconKey: String) = _uiState.update { it.copy(iconKey = iconKey) }
 
     fun setColor(colorArgb: Int) = _uiState.update { it.copy(colorArgb = colorArgb) }
+
+    fun setCurrency(code: String) = _uiState.update { it.copy(currency = code) }
 
     fun setInitialBalance(text: String) = _uiState.update {
         it.copy(initialBalanceText = text.filter { char -> char.isDigit() || char == ',' || char == '.' || char == '-' })
@@ -89,6 +93,7 @@ class AccountEditorViewModel @Inject constructor(
                     iconKey = state.iconKey,
                     colorArgb = state.colorArgb,
                     initialBalance = state.initialBalance,
+                    currency = state.currency,
                 ),
             )
             _finished.emit(Unit)

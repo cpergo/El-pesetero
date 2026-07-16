@@ -13,7 +13,7 @@ Sin cuentas, sin servidores, sin anuncios. Tus datos nunca salen de tu teléfono
 </p>
 
 <p>
-<a href="https://github.com/cpergo/El-pesetero/raw/main/releases/peseta-1.0.0.apk"><strong>⬇️&nbsp;Descargar APK</strong></a>
+<a href="https://github.com/cpergo/El-pesetero/raw/main/releases/el-pesetero-1.2.0.apk"><strong>⬇️&nbsp;Descargar APK</strong></a>
 &nbsp;·&nbsp;
 <a href="https://cpergo.github.io/El-pesetero/"><strong>🌐&nbsp;Web</strong></a>
 </p>
@@ -88,6 +88,54 @@ Framework** (sin permisos amplios de almacenamiento). Bloqueo opcional con `Biom
 ### Tema claro y oscuro
 **Material 3** con un esquema de color propio inspirado en la antigua moneda de 500 pesetas.
 Modo claro, oscuro o automático según el sistema, con las preferencias guardadas en **DataStore**.
+
+<br clear="all">
+
+<img src="docs/screenshots/presupuestos.png" align="right" width="220" hspace="24" vspace="6" alt="Presupuestos">
+
+### Presupuestos por categoría
+Fija un **límite mensual de gasto** por categoría (entidad `Budget` en Room con clave foránea).
+El gasto del mes se calcula por agregación SQL y se muestra con una **barra de progreso tipo
+semáforo** (verde → ocre → terracota). Al superar el 80 %, la pantalla principal enseña un aviso
+discreto, sin diálogos ni notificaciones que interrumpan.
+
+<br clear="all">
+
+<img src="docs/screenshots/recurrentes.png" align="left" width="220" hspace="24" vspace="6" alt="Movimientos recurrentes">
+
+### Movimientos recurrentes
+Reglas para el alquiler, las suscripciones o la nómina que **se apuntan solas**. Sin `WorkManager`
+ni alarmas: al abrir la app se generan todas las ocurrencias pendientes desde la última vez
+(aunque hayan pasado meses), con un aviso no intrusivo y **opción de deshacer** cada apunte.
+
+<br clear="all">
+
+<img src="docs/screenshots/objetivos.png" align="right" width="220" hspace="24" vspace="6" alt="Objetivos de ahorro">
+
+### Objetivos de ahorro
+Metas de ahorro (entidad `SavingsGoal`) con **aportaciones manuales** y barra de progreso con el
+mismo color semáforo que los presupuestos. Al llegar al 100 % la tarjeta muestra un estado de
+celebración discreto, acorde a la identidad visual de la app.
+
+<br clear="all">
+
+<img src="docs/screenshots/divisas.png" align="left" width="220" hspace="24" vspace="6" alt="Multi-divisa">
+
+### Multi-divisa sin internet
+Cada cuenta tiene su **propia divisa** y muestra su saldo en ella. Como no hay red, defines a mano
+las **tasas de conversión** hacia tu divisa principal y las actualizas cuando quieras. El saldo
+total combinado se marca como aproximado (`≈`) con la fecha de la última tasa usada, para que
+quede claro que no es un cambio en tiempo real.
+
+<br clear="all">
+
+<img src="docs/screenshots/etiquetas-ticket.png" align="right" width="220" hspace="24" vspace="6" alt="Etiquetas y foto de ticket">
+
+### Etiquetas y foto de ticket
+**Etiquetas** (relación muchos-a-muchos con los movimientos) para agrupar gastos que cruzan
+categorías —un viaje, un proyecto— con filtro propio y un total por etiqueta en estadísticas.
+Además, adjunta la **foto del ticket** a cualquier movimiento: se captura con un *intent* implícito
+(sin permiso de cámara), se comprime y se guarda solo en el almacenamiento privado de la app.
 
 <br clear="all">
 

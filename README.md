@@ -189,16 +189,73 @@ cd El-pesetero
 Requiere Android Studio (JDK 17 o posterior incluido) y un dispositivo o emulador con Android 8.0
 (API 26) o superior.
 
-**Compilar iOS:** abre `iosApp/iosApp.xcodeproj` con Xcode, selecciona un simulador o dispositivo y
-ejecuta el esquema `iosApp`. El proyecto invoca Gradle automáticamente para generar el framework
-Kotlin adecuado. Para probar la lógica compartida desde terminal:
+### Ejecutar iOS
+
+Requiere macOS, Xcode 26, JDK 17/21 (el incluido con Android Studio sirve) y un destino con iOS 14
+o posterior. El proyecto usa la integración directa con Xcode: cada compilación genera e integra
+automáticamente el framework Kotlin adecuado.
+
+Desde la raíz del repositorio, `make ios` arranca el flujo completo para el simulador: reutiliza
+el dispositivo indicado si ya está iniciado o elige su versión más reciente, lo inicia, compila
+la aplicación, la instala y la abre. El simulador requiere un Mac con Apple Silicon; en un Mac
+Intel se puede usar un iPhone físico o añadir el target `iosX64` al módulo compartido.
 
 ```bash
-./gradlew :shared:iosSimulatorArm64Test
+make ios                         # iPhone 17 Pro por defecto
+make ios SIMULATOR="iPhone 17"   # selecciona otro modelo
+make ios-simulators              # muestra todos los simuladores disponibles
+make ios-test                    # ejecuta las pruebas Kotlin de iOS
+make ios-open                    # alternativa: abre el proyecto en Xcode
 ```
 
-Requiere macOS, Xcode 26 y un destino con iOS 14 o posterior. Para instalar en un dispositivo o
-distribuir la app hay que configurar el equipo de firma en Xcode.
+También puedes abrir `iosApp/iosApp.xcodeproj`, seleccionar el esquema `iosApp`, elegir un
+simulador y pulsar `⌘R`.
+
+#### Probar en un iPhone físico
+
+Para una primera instalación:
+
+1. Conecta y desbloquea el iPhone, acepta **Confiar en este ordenador** y activa
+   **Ajustes → Privacidad y seguridad → Modo de desarrollador**. El teléfono se reiniciará.
+2. En **Xcode → Settings → Accounts**, inicia sesión con tu Apple ID. Una cuenta personal sirve
+   para pruebas locales; TestFlight y App Store requieren pertenecer al Apple Developer Program.
+3. Copia la configuración local y rellena el nombre o UDID del iPhone, el `Team ID` de tu equipo
+   y un Bundle ID único:
+
+   ```bash
+   cp Makefile.local.example Makefile.local
+   ```
+
+   ```make
+   IOS_DEVICE = Mi iPhone
+   APPLE_TEAM_ID = ABCDE12345
+   IOS_BUNDLE_ID = com.tunombre.elpesetero
+   ```
+
+   `Makefile.local` está ignorado por Git. Si hay dispositivos con el mismo nombre, usa
+   `IOS_DEVICE_ID` en lugar de `IOS_DEVICE`.
+4. Comprueba que Xcode ve el teléfono y ejecuta la app:
+
+   ```bash
+   make ios-devices
+   make ios-device
+   ```
+
+`make ios-device` compila con firma automática, permite a Xcode crear o actualizar el perfil de
+desarrollo, instala la aplicación y la abre mediante `devicectl`. Mantén el iPhone desbloqueado
+durante la primera ejecución. También puedes pasar la configuración sin crear un archivo:
+
+```bash
+make ios-device \
+  IOS_DEVICE="Mi iPhone" \
+  APPLE_TEAM_ID=ABCDE12345 \
+  IOS_BUNDLE_ID=com.tunombre.elpesetero
+```
+
+Si la firma automática necesita intervención, ejecuta `make ios-open`, selecciona el target
+`iosApp`, abre **Signing & Capabilities**, elige tu equipo y pulsa `⌘R` con el iPhone como destino.
+Apple documenta el flujo en [Running your app on simulated or physical devices](https://developer.apple.com/documentation/Xcode/running-your-app-on-simulated-or-physical-devices)
+y [Enabling Developer Mode](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device).
 
 ## 🤝 Contribuir
 

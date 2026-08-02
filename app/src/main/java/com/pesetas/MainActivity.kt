@@ -5,17 +5,23 @@ import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.fragment.app.FragmentActivity
+import com.pesetas.platform.AndroidPlatformSession
 import com.pesetas.ui.AppRoot
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
 class MainActivity : FragmentActivity() {
+
+    private val platformSession: AndroidPlatformSession
+        get() = (application as PesetasApplication).platformSession
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        platformSession.attach(this)
         setContent {
-            AppRoot(onRestartRequired = ::restart)
+            AppRoot(
+                container = platformSession.container,
+                onRestartRequired = ::restart,
+            )
         }
     }
 

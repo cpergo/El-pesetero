@@ -1,7 +1,8 @@
 package com.pesetas
 
 import android.app.Application
-import dagger.hilt.android.HiltAndroidApp
+import com.pesetas.platform.AndroidPlatformSession
 
-@HiltAndroidApp
-class PesetasApplication : Application()
+class PesetasApplication : Application() {
+    val platformSession: AndroidPlatformSession by lazy { AndroidPlatformSession(this) }
+}

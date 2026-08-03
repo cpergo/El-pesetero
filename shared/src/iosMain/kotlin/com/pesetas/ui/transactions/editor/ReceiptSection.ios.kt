@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.UIKitView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.pesetas.platform.BinaryContent
+import com.pesetas.platform.asBinaryContent
 import com.pesetas.platform.resolveIosReceiptPath
 import com.pesetas.platform.topIosViewController
 import com.pesetas.ui.theme.LocalPesetasColors
@@ -65,7 +67,7 @@ import platform.posix.memcpy
 @Composable
 actual fun ReceiptSection(
     path: String?,
-    onImageSelected: (ByteArray) -> Unit,
+    onImageSelected: (BinaryContent) -> Unit,
     onRemove: () -> Unit,
 ) {
     val picker = remember { IosReceiptPicker(onImageSelected) }
@@ -164,7 +166,7 @@ actual fun ReceiptSection(
 
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 private class IosReceiptPicker(
-    var onSelected: (ByteArray) -> Unit,
+    var onSelected: (BinaryContent) -> Unit,
 ) : NSObject(), UIImagePickerControllerDelegateProtocol, UINavigationControllerDelegateProtocol {
     private var controller: UIImagePickerController? = null
 
@@ -199,7 +201,7 @@ private class IosReceiptPicker(
         val bytes = image?.let { UIImageJPEGRepresentation(it, 1.0)?.toByteArray() }
         picker.dismissViewControllerAnimated(true, completion = null)
         controller = null
-        if (bytes != null) onSelected(bytes)
+        if (bytes != null) onSelected(bytes.asBinaryContent())
     }
 
     override fun imagePickerControllerDidCancel(picker: UIImagePickerController) {

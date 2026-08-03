@@ -46,10 +46,14 @@ kotlin {
             implementation(libs.androidx.datastore.preferences)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.datetime)
+            api(libs.okio)
         }
         commonTest.dependencies {
             implementation(kotlin("test"))
             implementation(libs.kotlinx.coroutines.core)
+        }
+        androidUnitTest.dependencies {
+            implementation(kotlin("test"))
         }
         androidMain.dependencies {
             implementation(libs.androidx.core.ktx)

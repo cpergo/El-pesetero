@@ -20,8 +20,8 @@ import com.pesetas.data.backup.DatabaseBackupStorage
 import com.pesetas.data.files.ReceiptStorage
 import com.pesetas.data.local.PesetasDatabase
 import com.pesetas.data.local.PesetasDatabaseConstructor
-import java.io.ByteArrayInputStream
 import java.io.File
+import java.io.InputStream
 import java.lang.ref.WeakReference
 import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.Files
@@ -36,19 +36,32 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import okio.BufferedSink
+import okio.Source
+import okio.buffer
+import okio.sink
+import okio.source
 
 private const val PreferencesName = "pesetas_settings"
 private const val MaxReceiptSide = 1080
 private const val ReceiptJpegQuality = 82
-private const val Authenticators =
-    BiometricManager.Authenticators.BIOMETRIC_STRONG or
+private const val PendingImportSuffix = ".pending-import"
+private const val RestoreMarkerSuffix = ".restore-pending"
+internal const val AndroidAuthenticators =
+    BiometricManager.Authenticators.BIOMETRIC_WEAK or
         BiometricManager.Authenticators.DEVICE_CREDENTIAL
 
 class AndroidPlatformSession(context: Context) {
     private val applicationContext = context.applicationContext
     private val documents = AndroidDocumentService()
     private var activityReference = WeakReference<FragmentActivity>(null)
+
+    init {
+        applyPendingDatabaseImport(applicationContext)
+    }
 
     val container: AppContainer = createContainer()
 
@@ -90,22 +103,32 @@ class AndroidPlatformSession(context: Context) {
 
 private class AndroidReceiptStorage(context: Context) : ReceiptStorage {
     private val filesDir = context.filesDir
+    private val cacheDir = context.cacheDir
     private val receiptsDir: File
         get() = File(filesDir, "receipts").apply { mkdirs() }
 
-    override suspend fun store(encodedImage: ByteArray): String? = withContext(Dispatchers.IO) {
+    override suspend fun store(content: BinaryContent): String? = withContext(Dispatchers.IO) {
         runCatching {
-            val bitmap = decodeScaled(encodedImage) ?: return@runCatching null
-            val target = File(receiptsDir, "receipt_${UUID.randomUUID()}.jpg")
-            target.outputStream().use { output ->
-                check(bitmap.compress(Bitmap.CompressFormat.JPEG, ReceiptJpegQuality, output))
+            val staged = File.createTempFile("receipt_", ".source", cacheDir)
+            try {
+                staged.sink().buffer().use { sink -> content.writeTo(sink) }
+                val bitmap = decodeScaled { staged.inputStream() } ?: return@runCatching null
+                val target = File(receiptsDir, "receipt_${UUID.randomUUID()}.jpg")
+                try {
+                    target.outputStream().use { output ->
+                        check(bitmap.compress(Bitmap.CompressFormat.JPEG, ReceiptJpegQuality, output))
+                    }
+                    target.absolutePath
+                } catch (error: Throwable) {
+                    target.delete()
+                    throw error
+                } finally {
+                    bitmap.recycle()
+                }
+            } finally {
+                staged.delete()
             }
-            target.absolutePath
         }.getOrNull()
-    }
-
-    override suspend fun read(path: String): ByteArray? = withContext(Dispatchers.IO) {
-        resolve(path).takeIf { it.isFile }?.readBytes()
     }
 
     override suspend fun delete(path: String?) = withContext(Dispatchers.IO) {
@@ -113,18 +136,22 @@ private class AndroidReceiptStorage(context: Context) : ReceiptStorage {
         Unit
     }
 
+    override suspend fun read(path: String): ByteArray? = withContext(Dispatchers.IO) {
+        resolve(path).takeIf { it.isFile }?.readBytes()
+    }
+
     private fun resolve(path: String): File =
         File(path).takeIf { it.isAbsolute } ?: File(receiptsDir, path)
 
-    private fun decodeScaled(bytes: ByteArray): Bitmap? {
+    private fun decodeScaled(open: () -> InputStream?): Bitmap? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        ByteArrayInputStream(bytes).use { BitmapFactory.decodeStream(it, null, bounds) }
+        open()?.use { BitmapFactory.decodeStream(it, null, bounds) } ?: return null
         if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
         var sampleSize = 1
         while (max(bounds.outWidth, bounds.outHeight) / (sampleSize * 2) >= MaxReceiptSide) {
             sampleSize *= 2
         }
-        val decoded = ByteArrayInputStream(bytes).use {
+        val decoded = open()?.use {
             BitmapFactory.decodeStream(
                 it,
                 null,
@@ -134,12 +161,14 @@ private class AndroidReceiptStorage(context: Context) : ReceiptStorage {
         val largestSide = max(decoded.width, decoded.height)
         if (largestSide <= MaxReceiptSide) return decoded
         val scale = MaxReceiptSide.toFloat() / largestSide
-        return Bitmap.createScaledBitmap(
+        val scaled = Bitmap.createScaledBitmap(
             decoded,
             (decoded.width * scale).toInt().coerceAtLeast(1),
             (decoded.height * scale).toInt().coerceAtLeast(1),
             true,
         )
+        if (scaled !== decoded) decoded.recycle()
+        return scaled
     }
 }
 
@@ -148,31 +177,41 @@ private class AndroidDatabaseBackupStorage(
     private val database: PesetasDatabase,
 ) : DatabaseBackupStorage {
     private val databaseFile = context.getDatabasePath(PesetasDatabase.NAME)
+    private val operationMutex = Mutex()
 
-    override suspend fun exportDatabase(): ByteArray = withContext(Dispatchers.IO) {
-        checkpoint()
-        databaseFile.readBytes()
-    }
-
-    override suspend fun importDatabase(bytes: ByteArray) = withContext(Dispatchers.IO) {
-        databaseFile.parentFile?.mkdirs()
-        val temporary = File(databaseFile.parentFile, "${PesetasDatabase.NAME}.importing")
-        temporary.writeBytes(bytes)
-        try {
-            validateDatabase(temporary)
-            checkpoint()
-            replaceDatabase(temporary, databaseFile)
-            database.close()
-            deleteSidecars(databaseFile)
-        } finally {
-            temporary.delete()
-            deleteSidecars(temporary)
+    override suspend fun exportDatabase(): BinaryContent = BinaryContent { sink ->
+        operationMutex.withLock {
+            withContext(Dispatchers.IO) { checkpointAndCopy(sink) }
         }
     }
 
-    private suspend fun checkpoint() {
+    override suspend fun importDatabase(content: BinaryContent) {
+        operationMutex.withLock {
+            withContext(Dispatchers.IO) {
+                databaseFile.parentFile?.mkdirs()
+                val temporary = File(databaseFile.parentFile, "${PesetasDatabase.NAME}.importing")
+                val pending = File(databaseFile.path + PendingImportSuffix)
+                try {
+                    temporary.sink().buffer().use { sink -> content.writeTo(sink) }
+                    validateDatabase(temporary)
+                    replaceDatabase(temporary, pending)
+                    deleteDatabaseSidecars(pending)
+                } finally {
+                    temporary.delete()
+                    deleteDatabaseSidecars(temporary)
+                }
+            }
+        }
+    }
+
+    private suspend fun checkpointAndCopy(sink: BufferedSink) {
         database.useWriterConnection { connection ->
-            connection.usePrepared("PRAGMA wal_checkpoint(FULL)") { statement -> statement.step() }
+            connection.usePrepared("PRAGMA wal_checkpoint(FULL)") { statement ->
+                check(statement.step() && statement.getLong(0) == 0L) {
+                    "No se pudo consolidar la base de datos para exportarla"
+                }
+            }
+            databaseFile.source().use { source -> sink.writeAll(source) }
         }
     }
 
@@ -202,26 +241,52 @@ private class AndroidDatabaseBackupStorage(
         }
     }
 
-    private fun deleteSidecars(file: File) {
-        File(file.path + "-wal").delete()
-        File(file.path + "-shm").delete()
-    }
+}
 
-    private fun replaceDatabase(source: File, target: File) {
-        try {
-            Files.move(
-                source.toPath(),
-                target.toPath(),
-                StandardCopyOption.ATOMIC_MOVE,
-                StandardCopyOption.REPLACE_EXISTING,
-            )
-        } catch (_: AtomicMoveNotSupportedException) {
-            Files.move(
-                source.toPath(),
-                target.toPath(),
-                StandardCopyOption.REPLACE_EXISTING,
-            )
+private fun applyPendingDatabaseImport(context: Context) {
+    applyPendingDatabaseImport(context.getDatabasePath(PesetasDatabase.NAME))
+}
+
+internal fun applyPendingDatabaseImport(databaseFile: File) {
+    val pending = File(databaseFile.path + PendingImportSuffix)
+    val marker = File(databaseFile.path + RestoreMarkerSuffix)
+    if (!pending.isFile && !marker.isFile) return
+    if (pending.isFile) {
+        marker.outputStream().use { output ->
+            output.write(1)
+            output.fd.sync()
         }
+        replaceDatabase(pending, databaseFile)
+    }
+    deleteDatabaseSidecars(databaseFile, requireSuccess = true)
+    check(!marker.exists() || marker.delete()) { "No se pudo completar la restauración" }
+}
+
+private fun deleteDatabaseSidecars(file: File, requireSuccess: Boolean = false) {
+    listOf(
+        File(file.path + "-wal"),
+        File(file.path + "-shm"),
+        File(file.path + "-journal"),
+    ).forEach { sidecar ->
+        val deleted = !sidecar.exists() || sidecar.delete()
+        if (requireSuccess) check(deleted) { "No se pudo limpiar ${sidecar.name}" }
+    }
+}
+
+private fun replaceDatabase(source: File, target: File) {
+    try {
+        Files.move(
+            source.toPath(),
+            target.toPath(),
+            StandardCopyOption.ATOMIC_MOVE,
+            StandardCopyOption.REPLACE_EXISTING,
+        )
+    } catch (_: AtomicMoveNotSupportedException) {
+        Files.move(
+            source.toPath(),
+            target.toPath(),
+            StandardCopyOption.REPLACE_EXISTING,
+        )
     }
 }
 
@@ -229,7 +294,7 @@ private class AndroidDocumentService : DocumentService {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var activityReference = WeakReference<FragmentActivity>(null)
     private var pendingSave: PendingSave? = null
-    private var pendingOpen: CancellableContinuation<ByteArray?>? = null
+    private var pendingOpen: CancellableContinuation<BinaryContent?>? = null
     private var csvCreator: androidx.activity.result.ActivityResultLauncher<String>? = null
     private var databaseCreator: androidx.activity.result.ActivityResultLauncher<String>? = null
     private var documentPicker: androidx.activity.result.ActivityResultLauncher<Array<String>>? = null
@@ -261,15 +326,12 @@ private class AndroidDocumentService : DocumentService {
             if (uri == null) {
                 continuation.resume(null)
             } else {
-                scope.launch {
-                    runCatching {
-                        withContext(Dispatchers.IO) {
-                            activity.contentResolver.openInputStream(uri)?.use { it.readBytes() }
-                                ?: error("No se pudo abrir el archivo")
-                        }
-                    }.onSuccess(continuation::resume)
-                        .onFailure(continuation::resumeWithException)
-                }
+                val resolver = activity.applicationContext.contentResolver
+                continuation.resume(
+                    androidBinaryContent(openSource = {
+                        resolver.openInputStream(uri)?.source()
+                    }),
+                )
             }
         }
     }
@@ -277,11 +339,14 @@ private class AndroidDocumentService : DocumentService {
     override suspend fun saveFile(
         suggestedName: String,
         mimeType: String,
-        bytes: ByteArray,
+        content: BinaryContent,
     ): Boolean = suspendCancellableCoroutine { continuation ->
         check(pendingSave == null) { "Ya hay una exportación en curso" }
-        pendingSave = PendingSave(bytes, continuation)
-        continuation.invokeOnCancellation { pendingSave = null }
+        val pending = PendingSave(content, continuation)
+        pendingSave = pending
+        continuation.invokeOnCancellation {
+            if (!pending.started) clearPendingSave(pending)
+        }
         val launcher = if (mimeType == "text/csv") csvCreator else databaseCreator
         if (launcher == null) {
             pendingSave = null
@@ -291,11 +356,13 @@ private class AndroidDocumentService : DocumentService {
         }
     }
 
-    override suspend fun openFile(allowedMimeTypes: List<String>): ByteArray? =
+    override suspend fun openFile(allowedMimeTypes: List<String>): BinaryContent? =
         suspendCancellableCoroutine { continuation ->
             check(pendingOpen == null) { "Ya hay una importación en curso" }
             pendingOpen = continuation
-            continuation.invokeOnCancellation { pendingOpen = null }
+            continuation.invokeOnCancellation {
+                if (pendingOpen === continuation) pendingOpen = null
+            }
             val launcher = documentPicker
             if (launcher == null) {
                 pendingOpen = null
@@ -307,41 +374,67 @@ private class AndroidDocumentService : DocumentService {
 
     private fun finishSave(uri: Uri?) {
         val pending = pendingSave ?: return
-        pendingSave = null
         if (uri == null) {
+            clearPendingSave(pending)
             pending.continuation.resume(false)
             return
         }
+        pending.started = true
         scope.launch {
             val activity = activityReference.get()
             if (activity == null) {
                 pending.continuation.resumeWithException(
                     IllegalStateException("No hay una pantalla Android activa"),
                 )
+                clearPendingSave(pending)
                 return@launch
             }
-            runCatching {
-                withContext(Dispatchers.IO) {
-                    activity.contentResolver.openOutputStream(uri)?.use { it.write(pending.bytes) }
-                        ?: error("No se pudo abrir el destino")
-                }
-                true
-            }.onSuccess(pending.continuation::resume)
-                .onFailure(pending.continuation::resumeWithException)
+            try {
+                runCatching {
+                    withContext(Dispatchers.IO) {
+                        activity.contentResolver.openOutputStream(uri)?.sink()?.buffer()?.use { sink ->
+                            pending.content.writeTo(sink)
+                        } ?: error("No se pudo abrir el destino")
+                    }
+                    true
+                }.onSuccess(pending.continuation::resume)
+                    .onFailure(pending.continuation::resumeWithException)
+            } finally {
+                clearPendingSave(pending)
+            }
         }
     }
 
+    private fun clearPendingSave(pending: PendingSave) {
+        if (pendingSave === pending) pendingSave = null
+    }
+
     private data class PendingSave(
-        val bytes: ByteArray,
+        val content: BinaryContent,
         val continuation: CancellableContinuation<Boolean>,
+        var started: Boolean = false,
     )
+}
+
+internal fun androidBinaryContent(
+    openSource: () -> Source?,
+    onFinished: () -> Unit = {},
+): BinaryContent = BinaryContent { sink ->
+    withContext(Dispatchers.IO) {
+        try {
+            val source = openSource() ?: error("No se pudo abrir el archivo")
+            source.use { sink.writeAll(it) }
+        } finally {
+            onFinished()
+        }
+    }
 }
 
 private class AndroidDeviceAuthenticator(
     private val activityProvider: () -> FragmentActivity,
 ) : DeviceAuthenticator {
     override fun isAvailable(): Boolean = runCatching {
-        BiometricManager.from(activityProvider()).canAuthenticate(Authenticators) ==
+        BiometricManager.from(activityProvider()).canAuthenticate(AndroidAuthenticators) ==
             BiometricManager.BIOMETRIC_SUCCESS
     }.getOrDefault(false)
 
@@ -365,7 +458,7 @@ private class AndroidDeviceAuthenticator(
             BiometricPrompt.PromptInfo.Builder()
                 .setTitle("Desbloquear El pesetero")
                 .setSubtitle("Confirma tu identidad para continuar")
-                .setAllowedAuthenticators(Authenticators)
+                .setAllowedAuthenticators(AndroidAuthenticators)
                 .build(),
         )
     }

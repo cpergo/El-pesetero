@@ -2,6 +2,7 @@ package com.pesetas
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.fragment.app.FragmentActivity
@@ -26,6 +27,7 @@ class MainActivity : FragmentActivity() {
     }
 
     private fun restart() {
+        Toast.makeText(this, "Copia restaurada. Reiniciando…", Toast.LENGTH_LONG).show()
         val intent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
         }

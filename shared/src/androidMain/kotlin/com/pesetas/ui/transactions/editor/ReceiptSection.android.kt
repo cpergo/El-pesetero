@@ -33,7 +33,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -47,48 +46,44 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.FileProvider
+import com.pesetas.platform.BinaryContent
+import com.pesetas.platform.androidBinaryContent
 import com.pesetas.ui.theme.LocalPesetasColors
 import java.io.File
 import java.util.UUID
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import okio.source
 
 @Composable
 actual fun ReceiptSection(
     path: String?,
-    onImageSelected: (ByteArray) -> Unit,
+    onImageSelected: (BinaryContent) -> Unit,
     onRemove: () -> Unit,
 ) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     var pendingCapturePath by rememberSaveable { mutableStateOf<String?>(null) }
-
-    fun deliver(bytes: suspend () -> ByteArray?) {
-        scope.launch {
-            val image = withContext(Dispatchers.IO) { bytes() }
-            if (image != null) onImageSelected(image)
-        }
-    }
 
     val capture = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
         val file = pendingCapturePath?.let(::File)
         pendingCapturePath = null
         if (saved && file != null) {
-            deliver {
-                try {
-                    file.readBytes()
-                } finally {
-                    file.delete()
-                }
-            }
+            onImageSelected(
+                androidBinaryContent(
+                    openSource = { file.source() },
+                    onFinished = { file.delete() },
+                ),
+            )
         } else {
             file?.delete()
         }
     }
     val gallery = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
-            deliver { context.contentResolver.openInputStream(uri)?.use { it.readBytes() } }
+            val resolver = context.applicationContext.contentResolver
+            onImageSelected(
+                androidBinaryContent(
+                    openSource = { resolver.openInputStream(uri)?.source() },
+                ),
+            )
         }
     }
 

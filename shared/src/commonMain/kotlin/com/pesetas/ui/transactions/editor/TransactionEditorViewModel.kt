@@ -3,6 +3,8 @@ package com.pesetas.ui.transactions.editor
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.pesetas.platform.BinaryContent
+import com.pesetas.platform.asBinaryContent
 import com.pesetas.data.files.ReceiptImageStore
 import com.pesetas.domain.model.CategoryType
 import com.pesetas.domain.model.Transaction
@@ -175,10 +177,14 @@ class TransactionEditorViewModel(
         }
     }
 
-    fun attachReceipt(encodedImage: ByteArray) {
+    fun attachReceipt(content: BinaryContent) {
         viewModelScope.launch {
-            receiptImageStore.store(encodedImage)?.let { attachStoredReceipt(it) }
+            receiptImageStore.store(content)?.let { attachStoredReceipt(it) }
         }
+    }
+
+    fun attachReceipt(encodedImage: ByteArray) {
+        attachReceipt(encodedImage.asBinaryContent())
     }
 
     fun removeReceipt() {

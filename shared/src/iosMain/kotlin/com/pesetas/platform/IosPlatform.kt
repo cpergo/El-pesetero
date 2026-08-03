@@ -25,8 +25,12 @@ import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import okio.FileSystem
 import okio.Path.Companion.toPath
+import okio.buffer
 import platform.CoreGraphics.CGRectMake
 import platform.CoreGraphics.CGSizeMake
 import platform.Foundation.NSApplicationSupportDirectory
@@ -40,7 +44,6 @@ import platform.Foundation.NSURLIsExcludedFromBackupKey
 import platform.Foundation.NSURL.Companion.fileURLWithPath
 import platform.Foundation.NSUUID
 import platform.Foundation.NSUserDomainMask
-import platform.Foundation.dataWithContentsOfURL
 import platform.Foundation.create
 import platform.Foundation.writeToFile
 import platform.LocalAuthentication.LAContext
@@ -58,12 +61,23 @@ import platform.UIKit.UIGraphicsBeginImageContextWithOptions
 import platform.UIKit.UIGraphicsEndImageContext
 import platform.UIKit.UIGraphicsGetImageFromCurrentImageContext
 import platform.darwin.NSObject
+import platform.posix.O_CREAT
+import platform.posix.O_TRUNC
+import platform.posix.O_WRONLY
+import platform.posix.S_IRUSR
+import platform.posix.S_IWUSR
+import platform.posix.close
+import platform.posix.fsync
 import platform.posix.memcpy
+import platform.posix.open
 import platform.posix.rename
+import platform.posix.write
 
 private const val SettingsFileName = "pesetas_settings.preferences_pb"
 private const val MaxReceiptSide = 1080.0
 private const val ReceiptJpegQuality = 0.82
+private const val PendingImportSuffix = ".pending-import"
+private const val RestoreMarkerSuffix = ".restore-pending"
 
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)
 internal object IosPlatformSession {
@@ -74,14 +88,17 @@ internal object IosPlatformSession {
     }
     private val documentService = IosDocumentService()
 
-    var container: AppContainer by mutableStateOf(createContainer())
-        private set
-
     init {
+        applyPendingDatabaseImport(databasePath)
         excludeFromAutomaticBackup(rootPath)
     }
 
+    var container: AppContainer by mutableStateOf(createContainer())
+        private set
+
     fun reloadDatabase() {
+        container.close()
+        applyPendingDatabaseImport(databasePath)
         container = createContainer()
     }
 
@@ -144,8 +161,9 @@ private class IosReceiptStorage(rootPath: String) : ReceiptStorage {
         excludeFromAutomaticBackup(receiptsPath)
     }
 
-    override suspend fun store(encodedImage: ByteArray): String? = withContext(Dispatchers.Default) {
+    override suspend fun store(content: BinaryContent): String? = withContext(Dispatchers.Default) {
         runCatching {
+            val encodedImage = content.readByteArray()
             val image = UIImage(data = encodedImage.toNSData())
             val compressed = resizeIfNeeded(image)
             val data = UIImageJPEGRepresentation(compressed, ReceiptJpegQuality)
@@ -158,13 +176,13 @@ private class IosReceiptStorage(rootPath: String) : ReceiptStorage {
         }.getOrNull()
     }
 
-    override suspend fun read(path: String): ByteArray? = withContext(Dispatchers.Default) {
-        defaultManager.contentsAtPath(resolveIosReceiptPath(path))?.toByteArray()
-    }
-
     override suspend fun delete(path: String?) = withContext(Dispatchers.Default) {
         path?.let { defaultManager.removeItemAtPath(resolveIosReceiptPath(it), error = null) }
         Unit
+    }
+
+    override suspend fun read(path: String): ByteArray? = withContext(Dispatchers.Default) {
+        defaultManager.contentsAtPath(resolveIosReceiptPath(path))?.toByteArray()
     }
 
     private fun resizeIfNeeded(image: UIImage): UIImage {
@@ -187,40 +205,62 @@ private class IosDatabaseBackupStorage(
     private val databasePath: String,
     private val database: PesetasDatabase,
 ) : DatabaseBackupStorage {
-    override suspend fun exportDatabase(): ByteArray = withContext(Dispatchers.Default) {
-        checkpoint()
-        requireNotNull(defaultManager.contentsAtPath(databasePath)) {
-            "No se pudo leer la base de datos"
-        }.toByteArray()
-    }
+    private val operationMutex = Mutex()
 
-    override suspend fun importDatabase(bytes: ByteArray) = withContext(Dispatchers.Default) {
-        val temporary = "$databasePath.importing"
-        check(bytes.toNSData().writeToFile(temporary, atomically = true)) {
-            "No se pudo preparar la copia"
-        }
-        try {
-            validateDatabase(temporary)
-            checkpoint()
-            check(rename(temporary, databasePath) == 0) { "No se pudo reemplazar la base de datos" }
-            database.close()
-            deleteSidecars(databasePath)
-        } finally {
-            defaultManager.removeItemAtPath(temporary, error = null)
-            deleteSidecars(temporary)
+    override suspend fun exportDatabase(): BinaryContent = BinaryContent { sink ->
+        operationMutex.withLock {
+            withContext(Dispatchers.Default) {
+                database.useWriterConnection { connection ->
+                    connection.usePrepared("PRAGMA wal_checkpoint(FULL)") { statement ->
+                        check(statement.step() && statement.getLong(0) == 0L) {
+                            "No se pudo consolidar la base de datos para exportarla"
+                        }
+                    }
+                    val source = FileSystem.SYSTEM.source(databasePath.toPath())
+                    try {
+                        sink.writeAll(source)
+                    } finally {
+                        source.close()
+                    }
+                }
+            }
         }
     }
 
-    private suspend fun checkpoint() {
-        database.useWriterConnection { connection ->
-            connection.usePrepared("PRAGMA wal_checkpoint(FULL)") { statement -> statement.step() }
+    override suspend fun importDatabase(content: BinaryContent) {
+        operationMutex.withLock {
+            withContext(Dispatchers.Default) {
+                val temporary = "$databasePath.importing"
+                val pending = "$databasePath$PendingImportSuffix"
+                try {
+                    val sink = FileSystem.SYSTEM.sink(temporary.toPath()).buffer()
+                    try {
+                        content.writeTo(sink)
+                    } finally {
+                        sink.close()
+                    }
+                    validateDatabase(temporary)
+                    check(rename(temporary, pending) == 0) {
+                        "No se pudo preparar la base de datos restaurada"
+                    }
+                    deleteDatabaseSidecars(pending)
+                } finally {
+                    defaultManager.removeItemAtPath(temporary, error = null)
+                    deleteDatabaseSidecars(temporary)
+                }
+            }
         }
     }
 
     private fun validateDatabase(path: String) {
-        val raw = defaultManager.contentsAtPath(path)?.toByteArray()
-            ?: error("La copia está vacía")
-        require(raw.size >= 16 && raw.decodeToString(0, 16).startsWith("SQLite format 3")) {
+        val source = FileSystem.SYSTEM.source(path.toPath()).buffer()
+        val header = try {
+            require(source.request(16)) { "La copia está vacía" }
+            source.readByteArray(16)
+        } finally {
+            source.close()
+        }
+        require(header.decodeToString().startsWith("SQLite format 3")) {
             "El archivo no es una base SQLite válida"
         }
         BundledSQLiteDriver().open(path).use { connection ->
@@ -243,9 +283,47 @@ private class IosDatabaseBackupStorage(
         }
     }
 
-    private fun deleteSidecars(path: String) {
-        defaultManager.removeItemAtPath("$path-wal", error = null)
-        defaultManager.removeItemAtPath("$path-shm", error = null)
+}
+
+@OptIn(ExperimentalForeignApi::class)
+internal fun applyPendingDatabaseImport(databasePath: String) {
+    val pending = "$databasePath$PendingImportSuffix"
+    val marker = "$databasePath$RestoreMarkerSuffix"
+    if (!defaultManager.fileExistsAtPath(pending) && !defaultManager.fileExistsAtPath(marker)) return
+    if (defaultManager.fileExistsAtPath(pending)) {
+        writeRestoreMarker(marker)
+        check(rename(pending, databasePath) == 0) { "No se pudo aplicar la base de datos restaurada" }
+    }
+    deleteDatabaseSidecars(databasePath, requireSuccess = true)
+    check(
+        !defaultManager.fileExistsAtPath(marker) ||
+            defaultManager.removeItemAtPath(marker, error = null),
+    ) { "No se pudo completar la restauración" }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private fun writeRestoreMarker(path: String) {
+    val descriptor = open(path, O_WRONLY or O_CREAT or O_TRUNC, S_IRUSR or S_IWUSR)
+    check(descriptor >= 0) { "No se pudo preparar la restauración" }
+    try {
+        val marker = byteArrayOf(1)
+        val written = marker.usePinned { pinned ->
+            write(descriptor, pinned.addressOf(0), marker.size.toULong())
+        }
+        check(written == marker.size.toLong() && fsync(descriptor) == 0) {
+            "No se pudo confirmar la restauración"
+        }
+    } finally {
+        close(descriptor)
+    }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private fun deleteDatabaseSidecars(path: String, requireSuccess: Boolean = false) {
+    listOf("$path-wal", "$path-shm", "$path-journal").forEach { sidecar ->
+        val deleted = !defaultManager.fileExistsAtPath(sidecar) ||
+            defaultManager.removeItemAtPath(sidecar, error = null)
+        if (requireSuccess) check(deleted) { "No se pudo limpiar la restauración" }
     }
 }
 
@@ -253,7 +331,7 @@ private class IosDatabaseBackupStorage(
 private class IosDocumentService : DocumentService {
     private var operation: Operation? = null
     private var saveContinuation: CancellableContinuation<Boolean>? = null
-    private var openContinuation: CancellableContinuation<ByteArray?>? = null
+    private var openContinuation: CancellableContinuation<BinaryContent?>? = null
     private var temporaryExportPath: String? = null
     private var picker: UIDocumentPickerViewController? = null
     private val delegate = IosDocumentPickerDelegate(
@@ -264,24 +342,38 @@ private class IosDocumentService : DocumentService {
     override suspend fun saveFile(
         suggestedName: String,
         mimeType: String,
-        bytes: ByteArray,
-    ): Boolean = suspendCancellableCoroutine { continuation ->
+        content: BinaryContent,
+    ): Boolean {
         check(operation == null) { "Ya hay un selector de documentos abierto" }
         val path = "${NSTemporaryDirectory()}$suggestedName"
-        check(bytes.toNSData().writeToFile(path, atomically = true))
-        temporaryExportPath = path
-        saveContinuation = continuation
         operation = Operation.EXPORT
-        continuation.invokeOnCancellation { finish() }
-        present(
-            UIDocumentPickerViewController(
-                forExportingURLs = listOf(fileURLWithPath(path)),
-                asCopy = true,
-            ),
-        )
+        temporaryExportPath = path
+        try {
+            withContext(Dispatchers.Default) {
+                val sink = FileSystem.SYSTEM.sink(path.toPath()).buffer()
+                try {
+                    content.writeTo(sink)
+                } finally {
+                    sink.close()
+                }
+            }
+        } catch (error: Throwable) {
+            finish()
+            throw error
+        }
+        return suspendCancellableCoroutine { continuation ->
+            saveContinuation = continuation
+            continuation.invokeOnCancellation { finish() }
+            present(
+                UIDocumentPickerViewController(
+                    forExportingURLs = listOf(fileURLWithPath(path)),
+                    asCopy = true,
+                ),
+            )
+        }
     }
 
-    override suspend fun openFile(allowedMimeTypes: List<String>): ByteArray? =
+    override suspend fun openFile(allowedMimeTypes: List<String>): BinaryContent? =
         suspendCancellableCoroutine { continuation ->
             check(operation == null) { "Ya hay un selector de documentos abierto" }
             openContinuation = continuation
@@ -311,16 +403,7 @@ private class IosDocumentService : DocumentService {
                 if (url == null) {
                     openContinuation?.resume(null)
                 } else {
-                    runCatching {
-                        val scoped = url.startAccessingSecurityScopedResource()
-                        try {
-                            NSData.dataWithContentsOfURL(url)?.toByteArray()
-                                ?: error("No se pudo leer el documento")
-                        } finally {
-                            if (scoped) url.stopAccessingSecurityScopedResource()
-                        }
-                    }.onSuccess { openContinuation?.resume(it) }
-                        .onFailure { openContinuation?.resumeWithException(it) }
+                    openContinuation?.resume(securityScopedContent(url))
                 }
             }
             null -> Unit
@@ -355,6 +438,24 @@ private class IosDocumentService : DocumentService {
     }
 
     private enum class Operation { EXPORT, IMPORT }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private fun securityScopedContent(url: NSURL): BinaryContent = BinaryContent { sink ->
+    withContext(Dispatchers.Default) {
+        val scoped = url.startAccessingSecurityScopedResource()
+        try {
+            val path = requireNotNull(url.path) { "No se pudo abrir el documento" }
+            val source = FileSystem.SYSTEM.source(path.toPath())
+            try {
+                sink.writeAll(source)
+            } finally {
+                source.close()
+            }
+        } finally {
+            if (scoped) url.stopAccessingSecurityScopedResource()
+        }
+    }
 }
 
 @OptIn(ExperimentalForeignApi::class, BetaInteropApi::class)

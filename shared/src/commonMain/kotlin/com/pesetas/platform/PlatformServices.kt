@@ -1,8 +1,13 @@
 package com.pesetas.platform
 
 interface DocumentService {
-    suspend fun saveFile(suggestedName: String, mimeType: String, bytes: ByteArray): Boolean
-    suspend fun openFile(allowedMimeTypes: List<String>): ByteArray?
+    suspend fun saveFile(
+        suggestedName: String,
+        mimeType: String,
+        content: BinaryContent,
+    ): Boolean
+
+    suspend fun openFile(allowedMimeTypes: List<String>): BinaryContent?
 }
 
 interface DeviceAuthenticator {

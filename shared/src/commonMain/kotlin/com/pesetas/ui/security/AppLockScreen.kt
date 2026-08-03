@@ -16,7 +16,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -32,15 +36,16 @@ fun AppLockScreen(
     onUnlocked: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
+    var authenticationUnavailable by remember { mutableStateOf(false) }
 
     fun requestUnlock() {
         scope.launch {
-            if (!authenticator.isAvailable() || authenticator.authenticate()) onUnlocked()
+            if (authenticateForUnlock(authenticator) { authenticationUnavailable = !it }) onUnlocked()
         }
     }
 
     LaunchedEffect(Unit) {
-        if (!authenticator.isAvailable() || authenticator.authenticate()) onUnlocked()
+        if (authenticateForUnlock(authenticator) { authenticationUnavailable = !it }) onUnlocked()
     }
 
     Column(
@@ -71,6 +76,23 @@ fun AppLockScreen(
             color = MaterialTheme.colorScheme.onBackground,
             textAlign = TextAlign.Center,
         )
+        if (authenticationUnavailable) {
+            Text(
+                text = "Configura un código, patrón o biometría en los ajustes del dispositivo y vuelve a intentarlo.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.error,
+                textAlign = TextAlign.Center,
+            )
+        }
         AppButton(text = "Desbloquear", onClick = { requestUnlock() })
     }
+}
+
+internal suspend fun authenticateForUnlock(
+    authenticator: DeviceAuthenticator,
+    onAvailabilityChecked: (Boolean) -> Unit = {},
+): Boolean {
+    val available = authenticator.isAvailable()
+    onAvailabilityChecked(available)
+    return available && authenticator.authenticate()
 }

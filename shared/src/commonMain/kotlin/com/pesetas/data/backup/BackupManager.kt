@@ -2,15 +2,17 @@ package com.pesetas.data.backup
 
 import com.pesetas.domain.model.TransactionType
 import com.pesetas.domain.repository.TransactionRepository
+import com.pesetas.platform.BinaryContent
 import com.pesetas.platform.DocumentService
 import kotlinx.coroutines.flow.first
+import okio.BufferedSink
 
 interface DatabaseBackupStorage {
-    /** Returns a consistent SQLite snapshot after checkpointing WAL. */
-    suspend fun exportDatabase(): ByteArray
+    /** Streams a consistent SQLite snapshot after checkpointing WAL. */
+    suspend fun exportDatabase(): BinaryContent
 
-    /** Atomically replaces the app database after validating the supplied SQLite file. */
-    suspend fun importDatabase(bytes: ByteArray)
+    /** Validates and stages a database that the platform applies during its restart. */
+    suspend fun importDatabase(content: BinaryContent)
 }
 
 class BackupManager(
@@ -20,8 +22,8 @@ class BackupManager(
 ) {
     suspend fun exportCsv(): Boolean {
         val details = transactionRepository.observeTransactions().first()
-        val csv = buildString {
-            appendLine(
+        val content = BinaryContent { sink ->
+            sink.writeLine(
                 CsvBuilder.row(
                     listOf("fecha", "tipo", "importe", "categoria", "cuenta", "cuenta_destino", "nota"),
                 ),
@@ -32,7 +34,7 @@ class BackupManager(
                     TransactionType.EXPENSE -> "Gasto"
                     TransactionType.TRANSFER -> "Transferencia"
                 }
-                appendLine(
+                sink.writeLine(
                     CsvBuilder.row(
                         listOf(
                             item.transaction.date.toString(),
@@ -50,20 +52,32 @@ class BackupManager(
         return documentService.saveFile(
             suggestedName = "el-pesetero-movimientos.csv",
             mimeType = "text/csv",
-            bytes = csv.encodeToByteArray(),
+            content = content,
         )
     }
 
     suspend fun exportDatabase(): Boolean = documentService.saveFile(
         suggestedName = "el-pesetero-backup.db",
         mimeType = "application/octet-stream",
-        bytes = databaseStorage.exportDatabase(),
+        content = databaseStorage.exportDatabase(),
     )
 
     suspend fun importDatabase(): Boolean {
-        val bytes = documentService.openFile(listOf("application/octet-stream", "application/x-sqlite3"))
+        val content = documentService.openFile(
+            listOf(
+                "application/vnd.sqlite3",
+                "application/x-sqlite3",
+                "application/octet-stream",
+                "*/*",
+            ),
+        )
             ?: return false
-        databaseStorage.importDatabase(bytes)
+        databaseStorage.importDatabase(content)
         return true
     }
+}
+
+private fun BufferedSink.writeLine(value: String) {
+    writeUtf8(value)
+    writeByte('\n'.code)
 }

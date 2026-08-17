@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Pesetas"
 include(":app")
+include(":shared")

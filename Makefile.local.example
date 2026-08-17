@@ -1,0 +1,14 @@
+# Copia este archivo como Makefile.local y completa los valores que necesites.
+# Makefile.local está ignorado por Git para no versionar datos de tu equipo.
+
+SIMULATOR = iPhone 17 Pro
+
+# Puedes identificar el iPhone por nombre o por UDID. Si defines ambos, prevalece el UDID.
+IOS_DEVICE =
+IOS_DEVICE_ID =
+
+# El Team ID aparece en la cuenta/equipo configurado en Xcode.
+APPLE_TEAM_ID =
+
+# Usa un identificador único asociado a tu equipo de desarrollo.
+IOS_BUNDLE_ID = com.tunombre.elpesetero

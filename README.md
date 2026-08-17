@@ -2,13 +2,14 @@
 
 <img src="docs/el-pesetero-readme.gif" alt="El pesetero" width="600">
 
-<p><strong>Control de gastos para Android — 100 % local, de código abierto y sin límites.</strong><br>
+<p><strong>Control de gastos para Android e iOS — 100 % local, de código abierto y sin límites.</strong><br>
 Sin cuentas, sin servidores, sin anuncios. Tus datos nunca salen de tu teléfono.</p>
 
 <p>
 <img src="https://img.shields.io/badge/Licencia-MIT-C89B3C?style=for-the-badge" alt="Licencia MIT">
 <img src="https://img.shields.io/badge/Android-8.0%2B-2D5F4C?style=for-the-badge&logo=android&logoColor=white" alt="Android 8+">
-<img src="https://img.shields.io/badge/Kotlin-Jetpack%20Compose-C89B3C?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin y Jetpack Compose">
+<img src="https://img.shields.io/badge/iOS-14%2B-2D5F4C?style=for-the-badge&logo=apple&logoColor=white" alt="iOS 14+">
+<img src="https://img.shields.io/badge/Kotlin-Multiplatform-C89B3C?style=for-the-badge&logo=kotlin&logoColor=white" alt="Kotlin Multiplatform">
 <img src="https://img.shields.io/badge/Sin%20INTERNET-100%25%20local-2D5F4C?style=for-the-badge" alt="Sin INTERNET, 100% local">
 </p>
 
@@ -22,8 +23,9 @@ Sin cuentas, sin servidores, sin anuncios. Tus datos nunca salen de tu teléfono
 
 ---
 
-**El pesetero** es una app Android nativa para llevar el control de tus gastos e ingresos.
-Está construida con **Kotlin + Jetpack Compose** sobre una arquitectura **MVVM** en capas
+**El pesetero** es una app multiplataforma para Android e iOS con la que llevar el control de
+tus gastos e ingresos. Está construida con **Kotlin Multiplatform + Compose Multiplatform** sobre
+una arquitectura **MVVM** en capas
 (`data` / `domain` / `ui`), con persistencia **100 % local** en **Room (SQLite)** y **sin
 ningún permiso de red**: es técnicamente incapaz de transmitir datos.
 
@@ -78,8 +80,9 @@ dibujados con `Canvas`.
 
 ### Copias de seguridad y privacidad
 Exportación a **CSV** y backup/restauración de la base de datos completa vía **Storage Access
-Framework** (sin permisos amplios de almacenamiento). Bloqueo opcional con `BiometricPrompt`
-(huella o PIN del dispositivo). `allowBackup=false` y **sin** `android.permission.INTERNET`.
+Framework** en Android y el selector nativo de documentos en iOS. Bloqueo opcional con la
+biometría o el código del dispositivo. `allowBackup=false` en Android y datos iOS excluidos del
+backup automático.
 
 <br clear="all">
 
@@ -134,33 +137,38 @@ quede claro que no es un cambio en tiempo real.
 ### Etiquetas y foto de ticket
 **Etiquetas** (relación muchos-a-muchos con los movimientos) para agrupar gastos que cruzan
 categorías —un viaje, un proyecto— con filtro propio y un total por etiqueta en estadísticas.
-Además, adjunta la **foto del ticket** a cualquier movimiento: se captura con un *intent* implícito
-(sin permiso de cámara), se comprime y se guarda solo en el almacenamiento privado de la app.
+Además, adjunta la **foto del ticket** a cualquier movimiento: se captura con el selector nativo
+de cada plataforma, se comprime y se guarda solo en el almacenamiento privado de la app.
 
 <br clear="all">
 
 ## 🧱 Arquitectura y stack
 
-- **Lenguaje / UI:** Kotlin · Jetpack Compose · Material 3
+- **Lenguaje / UI:** Kotlin Multiplatform · Compose Multiplatform · Material 3
 - **Arquitectura:** MVVM en capas `data` / `domain` / `ui`, estado con `StateFlow`
-- **Persistencia:** Room (SQLite) como única fuente de datos · DataStore para preferencias
+- **Código compartido:** dominio, Room, repositorios, ViewModels, navegación y las 17 pantallas
+- **Persistencia:** Room KMP (SQLite) como única fuente de datos · DataStore para preferencias
 - **Asincronía:** Coroutines + Flow (datos reactivos de extremo a extremo)
-- **Inyección de dependencias:** Hilt
+- **Dependencias:** contenedor de aplicación compartido con instancias de sesión
 - **Navegación:** Navigation Compose
-- **Seguridad:** BiometricPrompt · Storage Access Framework para los backups
-- **Build:** Gradle con Kotlin DSL y *version catalog* · `minSdk 26` · `targetSdk 35`
+- **Integración nativa:** BiometricPrompt/LocalAuthentication, selectores de documentos y cámara
+- **Build:** Gradle + Kotlin DSL · host SwiftUI/Xcode · Android `minSdk 26`, `targetSdk 36` / iOS 14+
 
 ```
-app/src/main/java/com/pesetas/
-├── data/      # Room (entidades, DAOs), repositorios, backup
+shared/src/commonMain/kotlin/com/pesetas/
+├── data/      # Room, DAOs, repositorios, tickets y backup
 ├── domain/    # modelos y contratos de repositorio
-├── di/        # módulos de Hilt
-└── ui/        # tema, navegación, componentes y una pantalla por feature
+└── ui/        # tema, navegación, ViewModels y pantallas compartidas
+
+shared/src/androidMain/  # biometría, archivos, cámara y almacenamiento Android
+shared/src/iosMain/      # LocalAuthentication, UIKit y almacenamiento iOS
+app/                     # launcher Android
+iosApp/                  # host SwiftUI y proyecto Xcode
 ```
 
 ## 🔒 Privacidad
 
-- **Sin permiso de INTERNET** en el manifiesto: la app no puede abrir conexiones de red.
+- **Sin permiso de INTERNET** en el manifiesto Android y sin clientes de red en el código compartido.
 - Sin cuentas, sin registro, sin analítica ni SDKs de terceros.
 - La base de datos vive en el almacenamiento privado de la app; los backups los controlas tú.
 
@@ -169,7 +177,7 @@ app/src/main/java/com/pesetas/
 **Usar la app (APK ya compilado):** descarga el APK desde [`releases/`](releases/) e instálalo
 (te pedirá permitir *orígenes desconocidos*).
 
-**Compilar desde el código:**
+**Compilar Android desde el código:**
 
 ```bash
 git clone https://github.com/cpergo/El-pesetero.git
@@ -178,7 +186,76 @@ cd El-pesetero
 ./gradlew installDebug         # instala en el dispositivo conectado
 ```
 
-Requiere Android Studio (JDK 17 incluido) y un dispositivo o emulador con Android 8.0 (API 26) o superior.
+Requiere Android Studio (JDK 17 o posterior incluido) y un dispositivo o emulador con Android 8.0
+(API 26) o superior.
+
+### Ejecutar iOS
+
+Requiere macOS, Xcode 26, JDK 17/21 (el incluido con Android Studio sirve) y un destino con iOS 14
+o posterior. El proyecto usa la integración directa con Xcode: cada compilación genera e integra
+automáticamente el framework Kotlin adecuado.
+
+Desde la raíz del repositorio, `make ios` arranca el flujo completo para el simulador: reutiliza
+el dispositivo indicado si ya está iniciado o elige su versión más reciente, lo inicia, compila
+la aplicación, la instala y la abre. El simulador requiere un Mac con Apple Silicon; en un Mac
+Intel se puede usar un iPhone físico o añadir el target `iosX64` al módulo compartido.
+
+```bash
+make ios                         # iPhone 17 Pro por defecto
+make ios SIMULATOR="iPhone 17"   # selecciona otro modelo
+make ios-simulators              # muestra todos los simuladores disponibles
+make ios-test                    # ejecuta las pruebas Kotlin de iOS
+make ios-open                    # alternativa: abre el proyecto en Xcode
+```
+
+También puedes abrir `iosApp/iosApp.xcodeproj`, seleccionar el esquema `iosApp`, elegir un
+simulador y pulsar `⌘R`.
+
+#### Probar en un iPhone físico
+
+Para una primera instalación:
+
+1. Conecta y desbloquea el iPhone, acepta **Confiar en este ordenador** y activa
+   **Ajustes → Privacidad y seguridad → Modo de desarrollador**. El teléfono se reiniciará.
+2. En **Xcode → Settings → Accounts**, inicia sesión con tu Apple ID. Una cuenta personal sirve
+   para pruebas locales; TestFlight y App Store requieren pertenecer al Apple Developer Program.
+3. Copia la configuración local y rellena el nombre o UDID del iPhone, el `Team ID` de tu equipo
+   y un Bundle ID único:
+
+   ```bash
+   cp Makefile.local.example Makefile.local
+   ```
+
+   ```make
+   IOS_DEVICE = Mi iPhone
+   APPLE_TEAM_ID = ABCDE12345
+   IOS_BUNDLE_ID = com.tunombre.elpesetero
+   ```
+
+   `Makefile.local` está ignorado por Git. Si hay dispositivos con el mismo nombre, usa
+   `IOS_DEVICE_ID` en lugar de `IOS_DEVICE`.
+4. Comprueba que Xcode ve el teléfono y ejecuta la app:
+
+   ```bash
+   make ios-devices
+   make ios-device
+   ```
+
+`make ios-device` compila con firma automática, permite a Xcode crear o actualizar el perfil de
+desarrollo, instala la aplicación y la abre mediante `devicectl`. Mantén el iPhone desbloqueado
+durante la primera ejecución. También puedes pasar la configuración sin crear un archivo:
+
+```bash
+make ios-device \
+  IOS_DEVICE="Mi iPhone" \
+  APPLE_TEAM_ID=ABCDE12345 \
+  IOS_BUNDLE_ID=com.tunombre.elpesetero
+```
+
+Si la firma automática necesita intervención, ejecuta `make ios-open`, selecciona el target
+`iosApp`, abre **Signing & Capabilities**, elige tu equipo y pulsa `⌘R` con el iPhone como destino.
+Apple documenta el flujo en [Running your app on simulated or physical devices](https://developer.apple.com/documentation/Xcode/running-your-app-on-simulated-or-physical-devices)
+y [Enabling Developer Mode](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device).
 
 ## 🤝 Contribuir
 

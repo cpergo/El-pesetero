@@ -2,24 +2,32 @@ package com.pesetas
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.fragment.app.FragmentActivity
+import com.pesetas.platform.AndroidPlatformSession
 import com.pesetas.ui.AppRoot
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
 class MainActivity : FragmentActivity() {
+
+    private val platformSession: AndroidPlatformSession
+        get() = (application as PesetasApplication).platformSession
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        platformSession.attach(this)
         setContent {
-            AppRoot(onRestartRequired = ::restart)
+            AppRoot(
+                container = platformSession.container,
+                onRestartRequired = ::restart,
+            )
         }
     }
 
     private fun restart() {
+        Toast.makeText(this, "Copia restaurada. Reiniciando…", Toast.LENGTH_LONG).show()
         val intent = packageManager.getLaunchIntentForPackage(packageName)?.apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
         }

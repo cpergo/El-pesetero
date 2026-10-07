@@ -131,21 +131,6 @@ ticket**: se toma con la cámara o la galería del móvil y se queda guardada so
 
 <br clear="all">
 
-## 📱 Android e iOS
-
-Una sola base de código en **Kotlin Multiplatform + Compose Multiplatform**: el dominio, los datos
-y las pantallas se comparten, y cada sistema aporta lo suyo —biometría, cámara y selector de
-archivos nativos—. Así la app se ve y se comporta igual en los dos teléfonos.
-
-- **Android** 8.0 (API 26) o superior
-- **iOS** 14 o superior
-
-## 🔒 Privacidad
-
-- **Sin permiso de INTERNET**: la app no puede abrir conexiones de red.
-- Sin cuentas, sin registro, sin analítica ni SDKs de terceros.
-- Tus datos viven en el almacenamiento privado de la app; las copias de seguridad las controlas tú.
-
 ## 🚀 Instalación
 
 **Android:** descarga el APK desde [`releases/`](releases/) e instálalo (te pedirá permitir

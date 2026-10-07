@@ -7,7 +7,7 @@
     <meta name="referrer" content="no-referrer">
     <meta name="color-scheme" content="light dark">
     <meta name="theme-color" content="#C89B3C">
-    <meta name="description" content="El pesetero es una app Android de control de gastos: gratuita, de código abierto y 100% local. Sin cuentas, sin servidores, sin anuncios y sin límites.">
+    <meta name="description" content="El pesetero es una app de control de gastos para Android e iPhone: gratuita, de código abierto y 100% local. Sin cuentas, sin servidores, sin anuncios y sin límites.">
     <title>El pesetero · Control de gastos local y de código abierto</title>
     <link rel="icon" type="image/png" href="assets/icons/favicon.png">
     <link rel="stylesheet" href="css/styles.css">
@@ -38,7 +38,7 @@
         <section class="hero" id="inicio">
             <div class="container hero-grid">
                 <div class="hero-text reveal">
-                    <p class="eyebrow">Control de gastos · Android</p>
+                    <p class="eyebrow">Control de gastos · Android e iOS</p>
                     <h1>Tus finanzas, <span class="accent">solo en tu bolsillo</span>.</h1>
                     <p class="lead">El pesetero es una app para llevar tus gastos e ingresos que funciona
                         <strong>100&nbsp;% en tu teléfono</strong>. Sin cuentas, sin servidores y sin anuncios.
@@ -50,7 +50,8 @@
                         </a>
                         <a class="btn btn-ghost" href="https://github.com/cpergo/El-pesetero" rel="noopener noreferrer">Ver en GitHub</a>
                     </div>
-                    <p class="hero-note">Requiere Android 8.0 o superior</p>
+                    <p class="hero-note">APK para Android 8.0 o superior. En iPhone (iOS 14+) se instala
+                        compilando el proyecto.</p>
                 </div>
                 <div class="hero-visual reveal">
                     <div class="device device-hero">
@@ -263,6 +264,14 @@
                 </div>
 
                 <div class="opensource reveal">
+                    <h3>Ahora también en el iPhone</h3>
+                    <p>El pesetero ya no es solo para Android: la app se ha reescrito con <strong>Kotlin
+                        Multiplatform</strong>, así que Android e iOS comparten el mismo código y las mismas
+                        pantallas. Las funciones son idénticas en los dos, y cada sistema pone lo suyo para la
+                        huella o la cara, la cámara y el selector de archivos.</p>
+                </div>
+
+                <div class="opensource reveal">
                     <h3>Código abierto de verdad</h3>
                     <p>Todo el código de El pesetero está publicado en GitHub bajo licencia MIT. Cualquiera puede
                         revisarlo, aprender de él o proponer mejoras. Las contribuciones no solo se permiten:
@@ -277,8 +286,10 @@
                 <div class="section-head reveal">
                     <p class="eyebrow">Instalación</p>
                     <h2 id="install-title">Instálala en un minuto</h2>
-                    <p class="section-sub">Como no está en Google Play, se instala directamente desde el APK.</p>
+                    <p class="section-sub">No está en Google Play ni en la App Store, así que se instala por tu
+                        cuenta. En Android es cosa de un minuto; en iPhone hay que compilarla.</p>
                 </div>
+                <h3 class="install-platform reveal">En Android</h3>
                 <ol class="steps">
                     <li class="step reveal">
                         <span class="step-num">1</span>
@@ -298,6 +309,14 @@
                         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/></svg>
                         Descargar
                     </a>
+                </div>
+
+                <h3 class="install-platform reveal">En iPhone</h3>
+                <p class="install-note reveal">Apple no deja instalar apps fuera de la App Store, así que de momento
+                    no hay un archivo que descargar. Para tenerla en tu iPhone necesitas un Mac con Xcode: te bajas
+                    el código, abres el proyecto y la instalas tú mismo. Está explicado paso a paso en GitHub.</p>
+                <div class="install-cta reveal">
+                    <a class="btn btn-ghost" href="https://github.com/cpergo/El-pesetero#-instalación" rel="noopener noreferrer">Cómo instalarla en iPhone</a>
                 </div>
             </div>
         </section>

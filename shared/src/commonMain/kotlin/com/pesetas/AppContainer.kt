@@ -29,10 +29,6 @@ import com.pesetas.platform.DeviceAuthenticator
 import com.pesetas.platform.DocumentService
 import com.pesetas.platform.ExternalLinkService
 
-/**
- * Small multiplatform dependency container. Keeping construction explicit avoids tying the
- * shared code to an Android-only DI runtime and makes every platform use the same repositories.
- */
 class AppContainer(
     val database: PesetasDatabase,
     dataStore: DataStore<Preferences>,

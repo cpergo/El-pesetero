@@ -8,10 +8,8 @@ import kotlinx.coroutines.flow.first
 import okio.BufferedSink
 
 interface DatabaseBackupStorage {
-    /** Streams a consistent SQLite snapshot after checkpointing WAL. */
     suspend fun exportDatabase(): BinaryContent
 
-    /** Validates and stages a database that the platform applies during its restart. */
     suspend fun importDatabase(content: BinaryContent)
 }
 

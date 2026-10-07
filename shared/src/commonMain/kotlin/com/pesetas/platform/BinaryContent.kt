@@ -3,7 +3,6 @@ package com.pesetas.platform
 import okio.Buffer
 import okio.BufferedSink
 
-/** A repeatable or one-shot binary payload that can be copied without loading it all in memory. */
 fun interface BinaryContent {
     suspend fun writeTo(sink: BufferedSink)
 }

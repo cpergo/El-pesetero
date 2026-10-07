@@ -3,6 +3,10 @@
 Aquí están los APK listos para instalar directamente en cualquier teléfono
 Android (8.0 / API 26 o superior), sin pasar por Google Play.
 
+En iOS la app se instala compilando el proyecto desde el código (ver el
+[README principal](../README.md)): Apple no permite distribuir una app fuera de
+la App Store, así que aquí no hay ningún archivo para iPhone.
+
 | Versión | Archivo | Tamaño | Estado |
 |---------|---------|--------|--------|
 | 1.2.0 | [el-pesetero-1.2.0.apk](el-pesetero-1.2.0.apk) | ~3 MB | **Actual** |

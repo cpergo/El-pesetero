@@ -23,239 +23,160 @@ Sin cuentas, sin servidores, sin anuncios. Tus datos nunca salen de tu teléfono
 
 ---
 
-**El pesetero** es una app multiplataforma para Android e iOS con la que llevar el control de
-tus gastos e ingresos. Está construida con **Kotlin Multiplatform + Compose Multiplatform** sobre
-una arquitectura **MVVM** en capas
-(`data` / `domain` / `ui`), con persistencia **100 % local** en **Room (SQLite)** y **sin
-ningún permiso de red**: es técnicamente incapaz de transmitir datos.
+**El pesetero** es una app para **Android e iOS** con la que llevar el control de tus gastos e
+ingresos. La misma app, el mismo código y la misma pantalla en los dos teléfonos. Todo se guarda
+**solo en tu dispositivo** y **sin ningún permiso de red**: es técnicamente incapaz de transmitir
+tus datos a ninguna parte.
 
 ## ✨ Características
 
 <img src="docs/screenshots/home.png" align="left" width="220" hspace="24" vspace="6" alt="Pantalla principal">
 
 ### Pantalla principal
-Donut de gastos por categoría dibujado con `Canvas` de Compose e **interactivo**: al mantener
-pulsada una porción se resuelve la categoría por *hit-testing* (ángulo + radio) y se muestran
-sus datos en el centro. Balance, ingresos y gastos del mes se calculan de forma **reactiva**
-con `Flow` + `StateFlow`, con navegación entre meses.
+Un donut con tus gastos del mes repartidos por categoría, **interactivo**: mantén pulsada una
+porción y verás a qué categoría pertenece y cuánto llevas gastado. Balance, ingresos y gastos se
+actualizan solos, y puedes moverte entre meses.
 
 <br clear="all">
 
 <img src="docs/screenshots/movimientos.png" align="right" width="220" hspace="24" vspace="6" alt="Movimientos">
 
 ### Movimientos
-Listado observado desde **Room con `Flow`**, agrupado por día y **filtrable** por mes, cuenta
-o categoría. Alta, edición y borrado de ingresos, gastos y transferencias, con validación en
-el `ViewModel` y estado de UI inmutable (`StateFlow`).
+Todos tus apuntes agrupados por día y **filtrables** por mes, cuenta o categoría. Añade, edita o
+borra ingresos, gastos y transferencias en un par de toques.
 
 <br clear="all">
 
 <img src="docs/screenshots/categorias.png" align="left" width="220" hspace="24" vspace="6" alt="Categorías">
 
 ### Categorías ilimitadas
-Categorías sin límite, cada una con icono (**Material Symbols**) y color, persistidas en Room
-y **reordenables**. Nada de muros de pago: justo lo que otras apps cobran, aquí es gratis.
+Las categorías que quieras, cada una con su icono y su color, y **reordenables** a tu gusto. Nada
+de muros de pago: justo lo que otras apps cobran, aquí es gratis.
 
 <br clear="all">
 
 <img src="docs/screenshots/cuentas.png" align="right" width="220" hspace="24" vspace="6" alt="Cuentas">
 
 ### Cuentas y transferencias
-Múltiples cuentas con **saldo calculado mediante agregación SQL** (inicial + ingresos − gastos
-± transferencias), saldo total combinado y transferencias entre cuentas modeladas como un tipo
-de transacción propio.
+Tantas cuentas como necesites —banco, efectivo, ahorros— con su saldo siempre al día, el total
+combinado y transferencias entre ellas sin descuadrar nada.
 
 <br clear="all">
 
 <img src="docs/screenshots/estadisticas.png" align="left" width="220" hspace="24" vspace="6" alt="Estadísticas">
 
 ### Estadísticas
-Comparativa de ingresos y gastos **mes a mes**, evolución de una categoría concreta y filtro
-por **rango de fechas** personalizado. Agregaciones calculadas en el repositorio y gráficos
-dibujados con `Canvas`.
+Compara ingresos y gastos **mes a mes**, mira cómo evoluciona una categoría concreta y acota el
+periodo con un **rango de fechas** a medida.
 
 <br clear="all">
 
 <img src="docs/screenshots/ajustes.png" align="right" width="220" hspace="24" vspace="6" alt="Copias de seguridad y privacidad">
 
 ### Copias de seguridad y privacidad
-Exportación a **CSV** y backup/restauración de la base de datos completa vía **Storage Access
-Framework** en Android y el selector nativo de documentos en iOS. Bloqueo opcional con la
-biometría o el código del dispositivo. `allowBackup=false` en Android y datos iOS excluidos del
-backup automático.
+Exporta a **CSV** o haz una copia completa de tus datos, y guárdala donde tú decidas con el
+selector de archivos de tu móvil. Puedes **bloquear la app** con la huella, la cara o el código del
+dispositivo, y tus datos quedan fuera de las copias automáticas del sistema.
 
 <br clear="all">
 
 <img src="docs/screenshots/home-dark.png" align="left" width="220" hspace="24" vspace="6" alt="Tema claro y oscuro">
 
 ### Tema claro y oscuro
-**Material 3** con un esquema de color propio inspirado en la antigua moneda de 500 pesetas.
-Modo claro, oscuro o automático según el sistema, con las preferencias guardadas en **DataStore**.
+Un diseño propio inspirado en la antigua moneda de 500 pesetas. Modo claro, oscuro o automático
+según el sistema.
 
 <br clear="all">
 
 <img src="docs/screenshots/presupuestos.png" align="right" width="220" hspace="24" vspace="6" alt="Presupuestos">
 
 ### Presupuestos por categoría
-Fija un **límite mensual de gasto** por categoría (entidad `Budget` en Room con clave foránea).
-El gasto del mes se calcula por agregación SQL y se muestra con una **barra de progreso tipo
-semáforo** (verde → ocre → terracota). Al superar el 80 %, la pantalla principal enseña un aviso
-discreto, sin diálogos ni notificaciones que interrumpan.
+Fija un **límite mensual** por categoría y la barra te lo dice de un vistazo con colores de
+semáforo (verde → ocre → terracota). Al pasar del 80 % aparece un aviso discreto en la pantalla
+principal, sin diálogos ni notificaciones que molesten.
 
 <br clear="all">
 
 <img src="docs/screenshots/recurrentes.png" align="left" width="220" hspace="24" vspace="6" alt="Movimientos recurrentes">
 
 ### Movimientos recurrentes
-Reglas para el alquiler, las suscripciones o la nómina que **se apuntan solas**. Sin `WorkManager`
-ni alarmas: al abrir la app se generan todas las ocurrencias pendientes desde la última vez
-(aunque hayan pasado meses), con un aviso no intrusivo y **opción de deshacer** cada apunte.
+El alquiler, las suscripciones o la nómina **se apuntan solos**. Al abrir la app se ponen al día
+todos los apuntes pendientes, aunque hayan pasado meses, y siempre puedes **deshacerlos**.
 
 <br clear="all">
 
 <img src="docs/screenshots/objetivos.png" align="right" width="220" hspace="24" vspace="6" alt="Objetivos de ahorro">
 
 ### Objetivos de ahorro
-Metas de ahorro (entidad `SavingsGoal`) con **aportaciones manuales** y barra de progreso con el
-mismo color semáforo que los presupuestos. Al llegar al 100 % la tarjeta muestra un estado de
-celebración discreto, acorde a la identidad visual de la app.
+Marca una meta —un viaje, un colchón— y ve añadiendo aportaciones. La barra de progreso usa los
+mismos colores que los presupuestos y celebra con discreción cuando llegas al 100 %.
 
 <br clear="all">
 
 <img src="docs/screenshots/divisas.png" align="left" width="220" hspace="24" vspace="6" alt="Multi-divisa">
 
 ### Multi-divisa sin internet
-Cada cuenta tiene su **propia divisa** y muestra su saldo en ella. Como no hay red, defines a mano
-las **tasas de conversión** hacia tu divisa principal y las actualizas cuando quieras. El saldo
-total combinado se marca como aproximado (`≈`) con la fecha de la última tasa usada, para que
-quede claro que no es un cambio en tiempo real.
+Cada cuenta puede estar en **su propia moneda**. Como la app no se conecta a ningún sitio, las
+**tasas de cambio las pones tú** y las actualizas cuando quieras. El total combinado se muestra
+como aproximado (`≈`) con la fecha de la última tasa, para que quede claro que no es tiempo real.
 
 <br clear="all">
 
 <img src="docs/screenshots/etiquetas-ticket.png" align="right" width="220" hspace="24" vspace="6" alt="Etiquetas y foto de ticket">
 
 ### Etiquetas y foto de ticket
-**Etiquetas** (relación muchos-a-muchos con los movimientos) para agrupar gastos que cruzan
-categorías —un viaje, un proyecto— con filtro propio y un total por etiqueta en estadísticas.
-Además, adjunta la **foto del ticket** a cualquier movimiento: se captura con el selector nativo
-de cada plataforma, se comprime y se guarda solo en el almacenamiento privado de la app.
+Las **etiquetas** agrupan gastos que cruzan categorías —un viaje, una reforma, un proyecto— con su
+propio filtro y su total en estadísticas. Y a cualquier movimiento puedes adjuntarle la **foto del
+ticket**: se toma con la cámara o la galería del móvil y se queda guardada solo dentro de la app.
 
 <br clear="all">
 
-## 🧱 Arquitectura y stack
+## 📱 Android e iOS
 
-- **Lenguaje / UI:** Kotlin Multiplatform · Compose Multiplatform · Material 3
-- **Arquitectura:** MVVM en capas `data` / `domain` / `ui`, estado con `StateFlow`
-- **Código compartido:** dominio, Room, repositorios, ViewModels, navegación y las 17 pantallas
-- **Persistencia:** Room KMP (SQLite) como única fuente de datos · DataStore para preferencias
-- **Asincronía:** Coroutines + Flow (datos reactivos de extremo a extremo)
-- **Dependencias:** contenedor de aplicación compartido con instancias de sesión
-- **Navegación:** Navigation Compose
-- **Integración nativa:** BiometricPrompt/LocalAuthentication, selectores de documentos y cámara
-- **Build:** Gradle + Kotlin DSL · host SwiftUI/Xcode · Android `minSdk 26`, `targetSdk 36` / iOS 14+
+Una sola base de código en **Kotlin Multiplatform + Compose Multiplatform**: el dominio, los datos
+y las pantallas se comparten, y cada sistema aporta lo suyo —biometría, cámara y selector de
+archivos nativos—. Así la app se ve y se comporta igual en los dos teléfonos.
 
-```
-shared/src/commonMain/kotlin/com/pesetas/
-├── data/      # Room, DAOs, repositorios, tickets y backup
-├── domain/    # modelos y contratos de repositorio
-└── ui/        # tema, navegación, ViewModels y pantallas compartidas
-
-shared/src/androidMain/  # biometría, archivos, cámara y almacenamiento Android
-shared/src/iosMain/      # LocalAuthentication, UIKit y almacenamiento iOS
-app/                     # launcher Android
-iosApp/                  # host SwiftUI y proyecto Xcode
-```
+- **Android** 8.0 (API 26) o superior
+- **iOS** 14 o superior
 
 ## 🔒 Privacidad
 
-- **Sin permiso de INTERNET** en el manifiesto Android y sin clientes de red en el código compartido.
+- **Sin permiso de INTERNET**: la app no puede abrir conexiones de red.
 - Sin cuentas, sin registro, sin analítica ni SDKs de terceros.
-- La base de datos vive en el almacenamiento privado de la app; los backups los controlas tú.
+- Tus datos viven en el almacenamiento privado de la app; las copias de seguridad las controlas tú.
 
-## 🚀 Compilación e instalación
+## 🚀 Instalación
 
-**Usar la app (APK ya compilado):** descarga el APK desde [`releases/`](releases/) e instálalo
-(te pedirá permitir *orígenes desconocidos*).
+**Android:** descarga el APK desde [`releases/`](releases/) e instálalo (te pedirá permitir
+*orígenes desconocidos*).
 
-**Compilar Android desde el código:**
+**iOS:** de momento se instala compilando el proyecto desde el código.
+
+<details>
+<summary><strong>Compilar desde el código</strong></summary>
 
 ```bash
 git clone https://github.com/cpergo/El-pesetero.git
 cd El-pesetero
-./gradlew assembleDebug        # APK de depuración
-./gradlew installDebug         # instala en el dispositivo conectado
 ```
 
-Requiere Android Studio (JDK 17 o posterior incluido) y un dispositivo o emulador con Android 8.0
-(API 26) o superior.
-
-### Ejecutar iOS
-
-Requiere macOS, Xcode 26, JDK 17/21 (el incluido con Android Studio sirve) y un destino con iOS 14
-o posterior. El proyecto usa la integración directa con Xcode: cada compilación genera e integra
-automáticamente el framework Kotlin adecuado.
-
-Desde la raíz del repositorio, `make ios` arranca el flujo completo para el simulador: reutiliza
-el dispositivo indicado si ya está iniciado o elige su versión más reciente, lo inicia, compila
-la aplicación, la instala y la abre. El simulador requiere un Mac con Apple Silicon; en un Mac
-Intel se puede usar un iPhone físico o añadir el target `iosX64` al módulo compartido.
+**Android** — con Android Studio y un dispositivo o emulador con Android 8.0 o superior:
 
 ```bash
-make ios                         # iPhone 17 Pro por defecto
-make ios SIMULATOR="iPhone 17"   # selecciona otro modelo
-make ios-simulators              # muestra todos los simuladores disponibles
-make ios-test                    # ejecuta las pruebas Kotlin de iOS
-make ios-open                    # alternativa: abre el proyecto en Xcode
+./gradlew installDebug
 ```
 
-También puedes abrir `iosApp/iosApp.xcodeproj`, seleccionar el esquema `iosApp`, elegir un
-simulador y pulsar `⌘R`.
-
-#### Probar en un iPhone físico
-
-Para una primera instalación:
-
-1. Conecta y desbloquea el iPhone, acepta **Confiar en este ordenador** y activa
-   **Ajustes → Privacidad y seguridad → Modo de desarrollador**. El teléfono se reiniciará.
-2. En **Xcode → Settings → Accounts**, inicia sesión con tu Apple ID. Una cuenta personal sirve
-   para pruebas locales; TestFlight y App Store requieren pertenecer al Apple Developer Program.
-3. Copia la configuración local y rellena el nombre o UDID del iPhone, el `Team ID` de tu equipo
-   y un Bundle ID único:
-
-   ```bash
-   cp Makefile.local.example Makefile.local
-   ```
-
-   ```make
-   IOS_DEVICE = Mi iPhone
-   APPLE_TEAM_ID = ABCDE12345
-   IOS_BUNDLE_ID = com.tunombre.elpesetero
-   ```
-
-   `Makefile.local` está ignorado por Git. Si hay dispositivos con el mismo nombre, usa
-   `IOS_DEVICE_ID` en lugar de `IOS_DEVICE`.
-4. Comprueba que Xcode ve el teléfono y ejecuta la app:
-
-   ```bash
-   make ios-devices
-   make ios-device
-   ```
-
-`make ios-device` compila con firma automática, permite a Xcode crear o actualizar el perfil de
-desarrollo, instala la aplicación y la abre mediante `devicectl`. Mantén el iPhone desbloqueado
-durante la primera ejecución. También puedes pasar la configuración sin crear un archivo:
+**iOS** — con macOS, Xcode y un destino con iOS 14 o superior. Puedes abrir
+`iosApp/iosApp.xcodeproj` y pulsar `⌘R`, o usar los atajos del `Makefile`:
 
 ```bash
-make ios-device \
-  IOS_DEVICE="Mi iPhone" \
-  APPLE_TEAM_ID=ABCDE12345 \
-  IOS_BUNDLE_ID=com.tunombre.elpesetero
+make            # lista todos los comandos y variables disponibles
+make ios        # compila, instala y abre la app en el simulador
+make ios-device # lo mismo en un iPhone conectado
 ```
 
-Si la firma automática necesita intervención, ejecuta `make ios-open`, selecciona el target
-`iosApp`, abre **Signing & Capabilities**, elige tu equipo y pulsa `⌘R` con el iPhone como destino.
-Apple documenta el flujo en [Running your app on simulated or physical devices](https://developer.apple.com/documentation/Xcode/running-your-app-on-simulated-or-physical-devices)
-y [Enabling Developer Mode](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device).
+</details>
 
 ## 🤝 Contribuir
 

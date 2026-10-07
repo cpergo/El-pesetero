@@ -41,7 +41,7 @@ help:
 		'  make ios-device           Compila, instala y abre la app en un iPhone' \
 		'  make ios-test             Ejecuta las pruebas Kotlin para iOS' \
 		'' \
-		'Variables habituales:' \
+		'Variables habituales (en la línea de comandos o en Makefile.local, ignorado por Git):' \
 		'  SIMULATOR="iPhone 17 Pro"' \
 		'  SIMULATOR_ID=<UUID>' \
 		'  IOS_DEVICE="Nombre del iPhone" o IOS_DEVICE_ID=<UDID>' \

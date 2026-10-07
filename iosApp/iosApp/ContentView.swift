@@ -13,7 +13,5 @@ private struct ComposeView: UIViewControllerRepresentable {
         MainViewControllerKt.MainViewController()
     }
 
-    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {
-        // Compose owns the view hierarchy and reacts to its own state.
-    }
+    func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
 }
